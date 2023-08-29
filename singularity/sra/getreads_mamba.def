@@ -1,25 +1,28 @@
 Bootstrap: docker
-From: condaforge/mambaforge:latest
+From: python:3-slim
+
+%environment
+
+  export LC_ALL=C
+  USER=${USER:-'rreggiar'}
 
 %post
 
-  cd /usr/local/bin
+  wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+  bash Miniforge3-$(uname)-$(uname -m).sh -b 
+
 
   # adapted from https://github.com/telatin/getreads/blob/main/docs/INSTALLATION.md#manual-installation
 
   # download nextflow binaries
   curl -s https://get.nextflow.io | bash
+  sudo mv nextflow /usr/local/bin
 
   # Clone the repository in a convenient location
   git clone git@github.com:telatin/getreads.git
 
   # Generate an environment with the required dependencies
   mamba create -n getreads getreads/deps/env.yaml
-
-%environment
-
-  export LC_ALL=C
-  USER=${USER:-'rreggiar'}
 
 %runscript
   
