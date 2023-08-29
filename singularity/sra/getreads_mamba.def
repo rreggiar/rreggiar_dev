@@ -8,9 +8,11 @@ From: python:3-slim
 
 %post
 
+  sudo apt update
+  sudo apt install wget -y
+
   wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
   bash Miniforge3-$(uname)-$(uname -m).sh -b 
-
 
   # adapted from https://github.com/telatin/getreads/blob/main/docs/INSTALLATION.md#manual-installation
 
