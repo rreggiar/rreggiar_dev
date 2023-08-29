@@ -1,6 +1,10 @@
 Bootstrap: docker
 From: python:3-slim
 
+%files
+
+  sraToolkit-setup-apt.sh /bin/sraToolkit-setup-apt.sh
+
 %post
 
   sudo apt update
@@ -9,6 +13,8 @@ From: python:3-slim
   sudo install jq -y
 
   # sraToolkit
+  sudo /bin/sraToolkit-setup-apt.sh
+  source /etc/profile.d/sra-tools.sh
   
   # ffq
   pip install ffq
