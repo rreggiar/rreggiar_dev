@@ -1,0 +1,8 @@
+## mac
+.DS_Store
+
+## singularity
+singularity/*/*.sif
+
+## emulation
+emulation/*.iso

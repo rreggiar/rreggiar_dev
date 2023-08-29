@@ -1,0 +1,5 @@
+FROM python:3-alpine as python
+
+WORKDIR /python
+
+CMD ["/bin/bash"]

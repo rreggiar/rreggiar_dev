@@ -1,0 +1,18 @@
+Bootstrap: docker
+From: python:3-slim
+
+%post
+  
+  pip install ffq
+
+%environment
+
+  export LC_ALL=C
+  USER=${USER:-'rreggiar'}
+  # NOTE UID is readonly in singularity (?)
+  UID=${UID:-0}
+
+%runscript
+
+  echo "pulling metadata for $@"
+  ffq "$@"
