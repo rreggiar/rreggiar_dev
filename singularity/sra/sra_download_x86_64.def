@@ -2,8 +2,21 @@ Bootstrap: docker
 From: python:3-slim
 
 %post
+
+  sudo apt update
+
+  # jq 
+  sudo install jq -y
+
+  # sraToolkit
   
+  # ffq
   pip install ffq
+
+  # awscli
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  unzip awscliv2.zip
+  sudo ./aws/install
 
 %environment
 
