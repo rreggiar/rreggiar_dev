@@ -6,6 +6,10 @@ From: python:3-slim
   export LC_ALL=C
   USER=${USER:-'rreggiar'}
 
+%files
+
+  /getreads
+
 %post
 
   apt update
@@ -23,11 +27,8 @@ From: python:3-slim
   curl -s https://get.nextflow.io | bash
   mv nextflow /usr/local/bin
 
-  # Clone the repository in a convenient location
-  git clone git@github.com:telatin/getreads.git
-
   # Generate an environment with the required dependencies
-  mamba create -n getreads getreads/deps/env.yaml
+  mamba create -n getreads /getreads/deps/env.yaml
 
 %runscript
   

@@ -1,0 +1,3 @@
+[submodule "singularity/sra/getreads"]
+	path = singularity/sra/getreads
+	url = git@github.com:telatin/getreads.git
