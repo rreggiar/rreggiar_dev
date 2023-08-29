@@ -19,7 +19,9 @@ From: python:3-slim
   apt install git -y
 
   wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-  bash Miniforge3-$(uname)-$(uname -m).sh -b 
+  bash Miniforge3-$(uname)-$(uname -m).sh -b -p "/root/conda"
+
+  source /root/conda/etc/profile.d/conda.sh
 
   # adapted from https://github.com/telatin/getreads/blob/main/docs/INSTALLATION.md#manual-installation
 
