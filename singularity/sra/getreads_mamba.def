@@ -1,0 +1,29 @@
+Bootstrap: docker
+From: condaforge/mambaforge:latest
+
+%post
+
+  cd /usr/local/bin
+
+  # adapted from https://github.com/telatin/getreads/blob/main/docs/INSTALLATION.md#manual-installation
+
+  # download nextflow binaries
+  curl -s https://get.nextflow.io | bash
+
+  # Clone the repository in a convenient location
+  git clone git@github.com:telatin/getreads.git
+
+  # Generate an environment with the required dependencies
+  mamba create -n getreads getreads/deps/env.yaml
+
+%environment
+
+  export LC_ALL=C
+  USER=${USER:-'rreggiar'}
+
+%runscript
+  
+  mamba activate getreads
+
+  nextflow --version
+
