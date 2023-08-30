@@ -5,6 +5,7 @@ From: python:3-slim
 
   export LC_ALL=C
   USER=${USER:-'rreggiar'}
+  . ./etc/conda/etc/profile.d/conda.sh
 
 %files
 
@@ -29,13 +30,4 @@ From: python:3-slim
   mv nextflow /usr/local/bin
 
   # Generate an environment with the required dependencies
-  mamba env create --name getreads --file /etc/env.yaml
-
-%runscript
-  
-  which mamba
-
-  which conda
-
-  which nextflow
-
+  mamba env create --name getreads --file /etc/env.yaml -p /etc/getreads_env
