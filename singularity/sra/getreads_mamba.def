@@ -33,4 +33,4 @@ From: python:3-slim
   # Generate an environment with the required dependencies
   mamba env create --name getreads --file /etc/env.yaml 
   conda activate getreads
-  mamba install -y nextflow
+  mamba install -y -c bioconda nextflow
