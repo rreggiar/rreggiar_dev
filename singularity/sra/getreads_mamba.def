@@ -8,7 +8,7 @@ From: python:3-slim
 
 %files
 
-  getreads/ /root/
+  getreads/deps/env.yaml /root/env.yaml
 
 %post
 
@@ -29,7 +29,7 @@ From: python:3-slim
   mv nextflow /usr/local/bin
 
   # Generate an environment with the required dependencies
-  mamba create -n getreads /root/getreads/deps/env.yaml
+  mamba create -n getreads /root/env.yaml
 
 %runscript
   
