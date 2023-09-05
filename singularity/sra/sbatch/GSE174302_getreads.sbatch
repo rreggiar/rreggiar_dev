@@ -4,8 +4,8 @@
 #SBATCH --error=getreads_GSE174302.%j.err
 #SBATCH --time=10:00:00
 #SBATCH -p normal
-#SBATCH -c 4
-#SBATCH --mem=8GB
+#SBATCH -c 16
+#SBATCH --mem=32GB
 
 SRA_PATH="$HOME/rreggiar_dev/singularity/sra"
 OUTPUT_PATH="$GROUP_SCRATCH/users/rreggiar/"
