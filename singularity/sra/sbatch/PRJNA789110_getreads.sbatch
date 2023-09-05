@@ -12,6 +12,6 @@ OUTPUT_PATH="$GROUP_SCRATCH/users/rreggiar/"
 
 singularity exec ~/rreggiar_dev/singularity/sra/getreads_mamba_AMD.sif \
   nextflow run $SRA_PATH/getreads/main.nf \
-  --list $SRA_PATH/PRJNA789110_accession.txt \
+  --list $SRA_PATH/data/PRJNA789110_accession.txt \
   --outdir $OUTPUT_PATH/circRNA_compatible_rnaSeq_20230830/PRJNA789110 \
   --resume
