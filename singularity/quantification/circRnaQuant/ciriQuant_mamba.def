@@ -6,7 +6,7 @@ From: python:2-slim
   export LC_ALL=C
   USER=${USER:-'rreggiar'}
   source /etc/conda/etc/profile.d/conda.sh
-  conda activate getreads
+  # conda activate getreads
 
 %files
 
