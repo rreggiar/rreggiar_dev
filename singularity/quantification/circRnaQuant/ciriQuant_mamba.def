@@ -30,6 +30,9 @@ From: python:2-slim
   # Generate an environment with the required dependencies
   # NOTE trying mamba install 
   # mamba env create --name CIRI --file /etc/env.yaml 
-  mamba create --name CIRI ciriquant
-  conda activate CIRI
-  mamba install -y -c bioconda nextflow
+  # NOTE this fails since ciriquant doesnt exist .. 
+  # mamba create --name CIRI ciriquant
+  # conda activate CIRI
+  # mamba install -y -c bioconda nextflow
+
+  pip install CIRIquant
