@@ -26,11 +26,7 @@ From: python:3-slim
 
   # adapted from https://github.com/telatin/getreads/blob/main/docs/INSTALLATION.md#manual-installation
 
-  # download nextflow binaries
-  #curl -s https://get.nextflow.io | bash
-  #mv nextflow /usr/local/bin
-
   # Generate an environment with the required dependencies
-  mamba env create --name getreads --file /etc/env.yaml 
-  conda activate getreads
+  mamba env create --name CIRI --file /etc/env.yaml 
+  conda activate CIRI
   mamba install -y -c bioconda nextflow
