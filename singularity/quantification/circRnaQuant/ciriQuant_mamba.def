@@ -28,6 +28,8 @@ From: python:2-slim
   # adapted from https://github.com/telatin/getreads/blob/main/docs/INSTALLATION.md#manual-installation
 
   # Generate an environment with the required dependencies
-  mamba env create --name CIRI --file /etc/env.yaml 
+  # NOTE trying mamba install 
+  # mamba env create --name CIRI --file /etc/env.yaml 
+  mamba create --name CIRI ciriquant
   conda activate CIRI
   mamba install -y -c bioconda nextflow
