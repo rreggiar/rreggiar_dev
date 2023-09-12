@@ -1,3 +1,6 @@
 [submodule "singularity/sra/getreads"]
 	path = singularity/sra/getreads
 	url = git@github.com:telatin/getreads.git
+[submodule "singularity/quantification/circRnaQuant/CIRIquant"]
+	path = singularity/quantification/circRnaQuant/CIRIquant
+	url = git@github.com:bioinfo-biols/CIRIquant.git
