@@ -28,5 +28,5 @@ From: python:3-slim
 
   # Generate an environment with the required dependencies
   mamba create --name circ_nf
-  mamba activate circ_nf
+  conda activate circ_nf
   mamba install -y -c bioconda nextflow singularity
