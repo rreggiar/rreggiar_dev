@@ -13,11 +13,10 @@ From: rocker/tidyverse:latest
 
 %files
 
-  install_UTIL.sh /tmp/install_UTIL.sh 
-  install.R /tmp/install.R
-  install_PERL.sh /tmp/install_PERL.sh
-  install_MEME.sh /tmp/install_MEME.sh
-
+  install_UTIL.sh /etc/install_UTIL.sh 
+  install.R /etc/install.R
+  install_PERL.sh /etc/install_PERL.sh
+  install_MEME.sh /etc/install_MEME.sh
 
 %post
 
@@ -131,10 +130,10 @@ From: rocker/tidyverse:latest
 	&& rm -rf /var/lib/apt/lists/*
 
   echo "R_LIBS=/usr/local/lib/R/host-site-library:\${R_LIBS}" > /usr/local/lib/R/etc/Renviron.site
-  . ./tmp/install_UTIL.sh
-  R -f /tmp/install.R
-  . ./tmp/install_PERL.sh
-  . ./tmp/install_MEME.sh
+  . ./etc/install_UTIL.sh
+  R -f /etc/install.R
+  . ./etc/install_PERL.sh
+  . ./etc/install_MEME.sh
 
   echo "MEME_PATH=/opt/meme-5.5.1/bin" >> /usr/local/lib/R/etc/Renviron.site
   echo "MEME_BIN=/opt/meme-5.5.1/bin" >> /usr/local/lib/R/etc/Renviron.site
