@@ -25,7 +25,7 @@ From: rocker/tidyverse:latest
   rm -f /var/lib/dpkg/available && rm -rf  /var/cache/apt/*
   dpkg --clear-avail
   # https://github.com/geerlingguy/ansible-role-java/issues/64
-  mkdir /usr/share/man/man1/
+  mkdir -p /usr/share/man/man1
 
   apt-get update \
   && apt-get install -y --no-install-recommends apt-utils \
