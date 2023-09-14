@@ -1,4 +1,5 @@
 # install common utils via Debian
+apt-get update
 apt-get install autoconf -y
 apt-get install automake -y
 apt-get install libtool -y
