@@ -24,6 +24,8 @@ From: rocker/tidyverse:latest
   # nuke cache dirs before installing pkgs; tip from Dirk E fixes broken img
   rm -f /var/lib/dpkg/available && rm -rf  /var/cache/apt/*
   dpkg --clear-avail
+  # https://github.com/geerlingguy/ansible-role-java/issues/64
+  mkdir /usr/share/man/man1/
 
   apt-get update \
   && apt-get install -y --no-install-recommends apt-utils \
