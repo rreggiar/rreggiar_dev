@@ -117,7 +117,7 @@ From: rocker/tidyverse:latest
   apt install curl -y
   apt install default-jre -y
 
-  pip3 install sklearn \
+  pip3 install scikit-learn \
         pandas \
         pyyaml
 
