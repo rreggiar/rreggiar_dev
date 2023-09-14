@@ -26,9 +26,8 @@ From: rocker/tidyverse:latest
   dpkg --clear-avail
 
   apt-get update \
-	&& apt-get install -y --no-install-recommends apt-utils \
+  && apt-get install -y --no-install-recommends apt-utils \
 	&& apt-get install -y --no-install-recommends \
-	## Basic deps
 	gdb \
 	libxml2-dev \
 	python3-pip \
@@ -37,13 +36,11 @@ From: rocker/tidyverse:latest
 	libbz2-dev \
 	libpng-dev \
 	libgit2-dev \
-	## sys deps from bioc_full
 	pkg-config \
 	fortran77-compiler \
 	byacc \
 	automake \
 	curl \
-	## This section installs libraries
 	libpcre2-dev \
 	libnetcdf-dev \
 	libhdf5-serial-dev \
@@ -81,8 +78,6 @@ From: rocker/tidyverse:latest
 	libprotobuf-dev \
 	libpq-dev \
 	libperl-dev \
-
-	## software - perl extentions and modules
 	libarchive-extract-perl \
 	libfile-copy-recursive-perl \
 	libcgi-pm-perl \
@@ -92,10 +87,8 @@ From: rocker/tidyverse:latest
 	libmysqlclient-dev \
 	default-libmysqlclient-dev \
 	libgdal-dev \
-	## new libs
-        libglpk-dev \
-        libeigen3-dev \
-	## Databases and other software
+  libglpk-dev \
+  libeigen3-dev \
 	sqlite \
 	openmpi-bin \
 	mpi-default-bin \
@@ -110,14 +103,12 @@ From: rocker/tidyverse:latest
 	graphviz \
 	protobuf-compiler \
 	jags \
-	## Additional resources
 	xfonts-100dpi \
 	xfonts-75dpi \
 	biber \
-        libsbml5-dev \
-        libzmq3-dev \
-        ## python3 dev
-        python3-dev \
+  libsbml5-dev \
+  libzmq3-dev \
+  python3-dev \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
   apt install wget -y
