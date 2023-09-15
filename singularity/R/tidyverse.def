@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: rocker/tidyverse:latest
+From: rocker/tidyverse:4
 
 %environment
 

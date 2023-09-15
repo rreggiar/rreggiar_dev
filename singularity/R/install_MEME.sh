@@ -3,6 +3,7 @@
 # need to set this path in R; it is not default for {memes::}
 
 version=5.5.1
+cd /etc/
 wget http://meme-suite.org/meme-software/$version/meme-$version.tar.gz
 tar zxf meme-$version.tar.gz
 cd meme-$version
