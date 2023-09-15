@@ -6,7 +6,7 @@ version=5.5.1
 wget http://meme-suite.org/meme-software/$version/meme-$version.tar.gz
 tar zxf meme-$version.tar.gz
 cd meme-$version
-./configure --prefix=/opt/meme-5.5.1
+./configure --prefix=/etc/meme-5.5.1
 make
 make test
 make install
