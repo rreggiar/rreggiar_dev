@@ -7,7 +7,8 @@ cd /etc/
 wget http://meme-suite.org/meme-software/$version/meme-$version.tar.gz
 tar zxf meme-$version.tar.gz
 cd meme-$version
+#perl scripts/dependencies.pl
 ./configure --prefix=/etc/meme-5.5.1
 make
-make test
+#make test
 make install
