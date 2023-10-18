@@ -7,6 +7,3 @@
 [submodule "singularity/quantification/circRnaQuant/circrna"]
 	path = singularity/quantification/circRnaQuant/circrna
 	url = git@github.com:nf-core/circrna.git
-[submodule "singularity/alignment/circrna"]
-	path = singularity/alignment/circrna
-	url = git@github.com:nf-core/circrna.git
