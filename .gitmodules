@@ -4,6 +4,3 @@
 [submodule "singularity/quantification/circRnaQuant/CIRIquant"]
 	path = singularity/quantification/circRnaQuant/CIRIquant
 	url = git@github.com:bioinfo-biols/CIRIquant.git
-[submodule "singularity/quantification/circRnaQuant/circrna"]
-	path = singularity/quantification/circRnaQuant/circrna
-	url = git@github.com:nf-core/circrna.git
