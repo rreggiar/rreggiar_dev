@@ -7,3 +7,6 @@
 [submodule "singularity/alignment/circrna"]
 	path = singularity/alignment/circrna
 	url = git@github.com:rreggiar/circrna.git
+[submodule "singularity/alignment/R-SPLASH"]
+	path = singularity/alignment/R-SPLASH
+	url = git@github.com:refresh-bio/R-SPLASH.git
