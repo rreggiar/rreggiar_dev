@@ -31,4 +31,4 @@ From: python:3-slim
   mamba create --name circ_nf
   conda activate circ_nf
   mamba install -n circ_nf -y -c bioconda nextflow singularity
-  mamba install -n circ_nf -y -c anaconda -c bioconda -c conda-forge --file /etc/requirements.txt
+  mamba install -n circ_nf -y -c anaconda -c bioconda -c conda-forge pandas viennarna biopython
