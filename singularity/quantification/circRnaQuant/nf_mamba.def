@@ -11,6 +11,7 @@ From: python:3-slim
 %files
 
   env.yaml /etc/env.yaml
+  filtered_reqs.txt /etc/requirements.txt
 
 %post
 
@@ -30,4 +31,4 @@ From: python:3-slim
   mamba create --name circ_nf
   conda activate circ_nf
   mamba install -y -c bioconda nextflow singularity
-  mamba install -n circ_nf --file <(grep -v "@" /etc/requirements.txt)
+  mamba install -n circ_nf --file /etc/requirements.txt
