@@ -36,6 +36,7 @@ From: python:3-slim
   mamba install conda-forge::pandas
   mamba install conda-forge::openpyxl
 
+  mamba install conda-forge::r-base
   mamba install r::r-tidyverse
   mamba install bioconda::bioconductor-decipher
   mamba install bioconda::bioconductor-biostrings
