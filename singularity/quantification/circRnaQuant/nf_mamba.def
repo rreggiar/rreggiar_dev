@@ -30,8 +30,14 @@ From: python:3-slim
   # Generate an environment with the required dependencies
   mamba create --name circ_nf
   conda activate circ_nf
+
   mamba install bioconda::viennarna
   mamba install conda-forge::biopython
   mamba install conda-forge::pandas
   mamba install conda-forge::openpyxl
-  # mamba install -n circ_nf -y -c bioconda nextflow singularity
+
+  mamba install r::r-tidyverse
+  mamba install bioconda::bioconductor-decipher
+  mamba install bioconda::bioconductor-biostrings
+  mamba install conda-forge::r-writexl
+
