@@ -40,7 +40,9 @@ From: python:3-slim
   mamba install conda-forge::r-biocmanager
 
   mamba install r::r-tidyverse
-  mamba install bioconda::bioconductor-decipher
-  mamba install bioconda::bioconductor-biostrings
   mamba install conda-forge::r-writexl
+
+  R -e "BiocManager::install(c("DECIPER", "Biostrings"))"
+  #mamba install bioconda::bioconductor-decipher
+  #mamba install bioconda::bioconductor-biostrings
 
