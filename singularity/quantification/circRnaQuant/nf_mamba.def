@@ -32,15 +32,16 @@ From: python:3-slim
   conda activate circ_nf
 
   mamba install bioconda::viennarna
+  mamba install bioconda::synapseclient
+
   mamba install conda-forge::biopython
   mamba install conda-forge::pandas
   mamba install conda-forge::openpyxl
-  mamba install synapseclient
+
+  mamba install r::r-tidyverse
 
   mamba install conda-forge::r-base
   mamba install conda-forge::r-biocmanager
-
-  mamba install r::r-tidyverse
   mamba install conda-forge::r-janitor
   mamba install conda-forge::r-writexl
 
