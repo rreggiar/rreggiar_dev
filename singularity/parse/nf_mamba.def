@@ -15,7 +15,7 @@ From: python:3-slim
   ParseBiosciences-Pipeline.1.2.1/ /etc/parsePipeline
 
 %test
-conda activate spipe && split-pipe
+conda init && conda activate spipe && split-pipe
 
 %post
 
