@@ -1,0 +1,458 @@
+<!-- block_start_page_Page1 -->
+
+<!-- block_start_div_id_Page1 -->
+<div id="Page1">
+  {% include "templates/navbar.html.j2" %}
+
+  <div class="container">
+    <div class="grid-container">
+      <div class="summary-stats">
+        <div
+          id="stats-container"
+          class="shadow-container"
+        >
+          <div id="scroll-buffer">
+            <!-- Keeps table from overlapping with scrollbar -->
+
+            <h5 class="text-center"><span id="pg1_sum_title_line"></span></h5>
+
+            <table
+              class="table table-hover"
+              id="summary-table"
+            >
+              <tbody>
+                {% for s in sum_json['stat_list'] %}
+                <tr>
+                  <td class="text-left">{{s.name}}</td>
+                  <td class="text-right">{{s.val}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- block_start_div_id_bc_rank_box -->
+      <div class="identified-cells">
+        <div class="shadow-container">
+          <div
+            class="plotly-page-1"
+            id="pg1-plotly-bc-rank"
+          ></div>
+        </div>
+      </div>
+      <!-- block_end_div_id_bc_rank_box -->
+
+      <!-- block_start_div_id_tscp_sat_box -->
+      <div class="tscp-per-cell">
+        <div class="shadow-container">
+          <div
+            class="plotly-page-1"
+            id="pg1-plotly-tscp-sat"
+            alt="show"
+          ></div>
+        </div>
+      </div>
+      <!-- block_end_div_id_tscp_sat_box -->
+
+      <!-- block_start_div_id_gene_sat_box -->
+      <div class="genes-per-cell">
+        <div class="shadow-container">
+          <div
+            class="plotly-page-1"
+            id="pg1-plotly-gene-sat"
+            alt="show"
+          ></div>
+        </div>
+      </div>
+      <!-- block_end_div_id_gene_sat_box -->
+
+      <div
+        id="plate-header"
+        class="plate-header"
+      >
+        <h3>Plates</h3>
+      </div>
+
+      <!-- block_start_all_plate_divs -->
+
+      <div class="round-1-tscp">
+        <div class="shadow-container-plt">
+          <div
+            class="plotly-hmap"
+            id="pg1-plotly-tscp-plt-1"
+          ></div>
+        </div>
+      </div>
+
+      <div class="round-1-cells">
+        <div class="shadow-container-plt">
+          <div
+            class="plotly-hmap"
+            id="pg1-plotly-cell-plt-1"
+          ></div>
+        </div>
+      </div>
+
+      <div class="round-2-tscp">
+        <div class="shadow-container-plt">
+          <div
+            class="plotly-hmap"
+            id="pg1-plotly-tscp-plt-2"
+          ></div>
+        </div>
+      </div>
+
+      <div class="round-3-tscp">
+        <div class="shadow-container-plt">
+          <div
+            class="plotly-hmap"
+            id="pg1-plotly-tscp-plt-3"
+          ></div>
+        </div>
+      </div>
+
+      <div class="round-2-cells">
+        <div class="shadow-container-plt">
+          <div
+            class="plotly-hmap"
+            id="pg1-plotly-cell-plt-2"
+          ></div>
+        </div>
+      </div>
+
+      <div class="round-3-cells">
+        <div class="shadow-container-plt">
+          <div
+            class="plotly-hmap"
+            id="pg1-plotly-cell-plt-3"
+          ></div>
+        </div>
+      </div>
+
+      <!-- block_end_all_plate_divs -->
+    </div>
+  </div>
+</div>
+<!-- block_end_div_id_Page1 -->
+
+<!-- Put whole script in { block } to avoid variable name collisions -->
+
+<script>
+  {
+
+    /*https://community.plotly.com/t/how-to-remove-mode-bar-buttons/34002/3 list of all buttons*/
+
+    const config_def = {
+      modeBarButtonsToRemove: [
+      "autoScale2d",
+      "hoverClosestCartesian",
+      "hoverCompareCartesian",
+      "sendDataToCloud",
+      "tableRotation",
+      "toggleSpikelines", ],
+      displaylogo: false
+     };
+
+    const config_plates = {
+      modeBarButtonsToRemove: [
+      "autoScale2d",
+      "hoverClosestCartesian",
+      "hoverCompareCartesian",
+      "sendDataToCloud",
+      "tableRotation",
+      "toggleSpikelines", ],
+      displaylogo: false
+     };
+
+    const bc_rank_vals = {{bc_rank_json}};
+    const pl_x_bc = bc_rank_vals[0];
+    const pl_y_bc = bc_rank_vals[1];
+    const n_top = bc_rank_vals[2];
+    const n_bot = bc_rank_vals[3];
+
+    const top_ind = pl_x_bc.indexOf(n_top);
+    const bot_ind = pl_x_bc.indexOf(n_bot);
+
+    const pl_x_bc_top = pl_x_bc.slice(0, top_ind);
+    const pl_y_bc_top = pl_y_bc.slice(0, top_ind);
+
+    const pl_x_bc_bot = pl_x_bc.slice(top_ind, bot_ind);
+    const pl_y_bc_bot = pl_y_bc.slice(top_ind, bot_ind);
+
+    // Transcript text prefix; Targeted or nothing
+    let tscp_prefix_str = "";
+    if (is_targeted) {
+      tscp_prefix_str = "Targeted ";
+    }
+
+
+  // block_start_js_bc_rank_plot
+    const bc_rank_raw = {
+      x: pl_x_bc,
+      y: pl_y_bc,
+      mode: "lines",
+      type: "line",
+      name: "Background",
+      line: {
+        color: "#CFCFCF",
+        width: 5,
+      },
+      hovertemplate:
+        "<b>" + tscp_prefix_str + "Transcripts:</b> %{y}<br>" +
+        "<b>Barcode rank:</b> %{x}<br>" +
+        "<extra></extra>",
+    };
+
+    const bc_rank_bot = {
+      x: pl_x_bc_bot,
+      y: pl_y_bc_bot,
+      showlegend: false,
+      mode: "lines",
+      type: "line",
+      line: {
+        /* Orig grey; Now light purple
+        color: "#a2a1e3",
+        */
+        color: "#9966b8",
+        width: 5,
+      },
+      hovertemplate:
+        "<b>" + tscp_prefix_str + "Transcripts:</b> %{y}<br>" +
+        "<b>Barcode rank:</b> %{x}<br>" +
+        "<extra></extra>",
+    };
+
+    const bc_rank_top = {
+      x: pl_x_bc_top,
+      y: pl_y_bc_top,
+      mode: "lines",
+      type: "line",
+      name: "Cells",
+      line: {
+        /* Orig blue; Now purple
+        color: "#504deb",
+        */
+        color: "#550088",
+        width: 5,
+      },
+      hovertemplate:
+        "<b>" + tscp_prefix_str + "Transcripts:</b> %{y}<br>" +
+        "<b>Barcode rank:</b> %{x}<br>" +
+        "<extra></extra>",
+    };
+
+    const bc_rank_data = [bc_rank_raw, bc_rank_top, bc_rank_bot];
+
+    const layout_bc =  {
+      width: 540,
+      height: 445,
+      margin: {"l":70,"t":50,"r":20,"b":60},
+      hovermode: "closest",
+      plot_bgcolor: "white",
+      showlegend: true,
+      title:"Identified Cells",
+      legend: {
+        x: 1,
+        y: 1,
+        xanchor: 'right',
+        bgcolor: '#ffffff',
+        bordercolor: '#d9d9d9',
+        borderwidth: 2
+      },
+      xaxis: {
+        zeroline: false,
+        showticklabels: true,
+        type: "log",
+        autorange: true,
+        showgrid: true,
+        showline: true,
+        title: {
+          text: "Barcodes (logscale)"
+        },
+      },
+      yaxis: {
+        zeroline: false,
+        showticklabels: true,
+        type: "log",
+        autorange: true,
+        showgrid: true,
+        showline: true,
+        title: {
+          text: tscp_prefix_str + "Transcripts (logscale)"
+        },
+      },
+    };
+
+    plotly_layout_set_font(layout_bc);
+    Plotly.newPlot("pg1-plotly-bc-rank", bc_rank_data, layout_bc, config_def);
+  // block_end_js_bc_rank_plot
+
+
+  // block_start_js_tscp_sat_plot
+    const tscp_json = {{sat_json['tscp_sat']}};
+    let tscp_title_str = "";
+    let tscp_subtitle_str = "";
+    let tscp_extra_str = "";
+
+    // Extra padding if not combine mode
+    if (!is_comb) {
+      tscp_extra_str = "";
+    }
+
+    const hover_template_tscp = {hovertemplate:
+          "<b>" + tscp_prefix_str + "Transcripts:</b> %{y}<br>" +
+          "<b>Reads:</b> %{x}<br>" +
+          tscp_extra_str
+    };
+
+    for (i = 0; i < tscp_json.length; i++) {
+      tscp_json[i].hovertemplate = hover_template_tscp.hovertemplate;
+    }
+
+    tscp_title_str = tscp_prefix_str + "Sequencing Saturation";
+    tscp_subtitle_str = "<span style='font-size: 14px; font-weight: bold;'>Transcripts</span>";
+    tscp_title_str = tscp_title_str + "<br>" + tscp_subtitle_str;
+
+    const layout_tscp_sat =  {
+      width: 540,
+      height: 445,
+      margin: {"l":70,"t":50,"r":20,"b":60},
+      hovermode: "closest",
+      plot_bgcolor: "white",
+      showlegend: false,
+      title: tscp_title_str,
+      legend: {
+        x: 1,
+        y: 0,
+        xanchor: 'right',
+        bgcolor: '#ffffff',
+        bordercolor: '#d9d9d9',
+        borderwidth: 2
+      },
+      xaxis: {
+        zeroline: false,
+        showticklabels: true,
+        autorange: true,
+        showgrid: true,
+        showline: true,
+        title: {
+          text: "Mean Reads per Cell"
+        },
+      },
+      yaxis: {
+        zeroline: false,
+        showticklabels: true,
+        autorange: true,
+        showgrid: true,
+        showline: true,
+        title: {
+          text: "Median Transcripts"
+        },
+      },
+    };
+
+    plotly_layout_set_font(layout_tscp_sat);
+    plotly_layout_set_colorway(layout_tscp_sat);
+    Plotly.newPlot("pg1-plotly-tscp-sat", tscp_json, layout_tscp_sat, config_def);
+  // block_end_js_tscp_sat_plot
+
+
+  // block_start_js_gene_sat_plot
+    const gene_json = {{sat_json['gene_sat']}};
+    let gene_title_str = "";
+    let gene_subtitle_str = "";
+    let gene_extra_str = "";
+
+    // Extra padding if not combine mode
+    if (!is_comb) {
+      gene_extra_str = "";
+    }
+    let hover_template_gene = {hovertemplate:
+          "<b>Genes:</b> %{y}<br>" +
+          "<b>Reads:</b> %{x}<br>" +
+          gene_extra_str
+    };
+
+    for (i = 0; i < gene_json.length; i++) {
+      gene_json[i].hovertemplate = hover_template_gene.hovertemplate;
+    }
+
+    // Title depends on targeted or not
+    if (is_targeted) {
+      gene_title_str = "Targeted Sequencing Saturation";
+    } else {
+      gene_title_str = "Sequencing Saturation";
+    }
+    gene_subtitle_str = "<span style='font-size: 14px; font-weight: bold;'>Genes</span>";
+    gene_title_str = gene_title_str + "<br>" + gene_subtitle_str;
+
+    const layout_gene_sat = {
+      width: 540,
+      height: 445,
+      margin: {"l":70,"t":50,"r":20,"b":60},
+      hovermode: "closest",
+      plot_bgcolor: "white",
+      showlegend: false,
+      title: gene_title_str,
+      legend: {
+        x: 1,
+        y: 0,
+        xanchor: 'right',
+        bgcolor: '#ffffff',
+        bordercolor: '#d9d9d9',
+        borderwidth: 2
+      },
+      xaxis: {
+        zeroline: false,
+        showticklabels: true,
+        autorange: true,
+        showgrid: true,
+        showline: true,
+        title: {
+          text: "Mean Reads per Cell"
+        },
+      },
+      yaxis: {
+        zeroline: false,
+        showticklabels: true,
+        autorange: true,
+        showgrid: true,
+        showline: true,
+        title: {
+          text: "Median Genes"
+        },
+      },
+    };
+
+    plotly_layout_set_font(layout_gene_sat);
+    plotly_layout_set_colorway(layout_gene_sat);
+    Plotly.newPlot("pg1-plotly-gene-sat", gene_json, layout_gene_sat, config_def);
+  // block_end_js_gene_sat_plot
+
+
+  // block_start_all_plate_data
+    const plates_json = {{plates_json}};
+
+    // Add font info to layouts
+    plotly_layout_set_font(plates_json[1]);
+    plotly_layout_set_font(plates_json[3]);
+    plotly_layout_set_font(plates_json[5]);
+    plotly_layout_set_font(plates_json[7]);
+    plotly_layout_set_font(plates_json[9]);
+    plotly_layout_set_font(plates_json[11]);
+
+    Plotly.newPlot('pg1-plotly-tscp-plt-1', plates_json[0], plates_json[1], config_plates);
+    Plotly.newPlot('pg1-plotly-cell-plt-1', plates_json[2], plates_json[3], config_plates);
+    Plotly.newPlot('pg1-plotly-tscp-plt-2', plates_json[4], plates_json[5], config_plates);
+    Plotly.newPlot('pg1-plotly-cell-plt-2', plates_json[6], plates_json[7], config_plates);
+    Plotly.newPlot('pg1-plotly-tscp-plt-3', plates_json[8], plates_json[9], config_plates);
+    Plotly.newPlot('pg1-plotly-cell-plt-3', plates_json[10], plates_json[11], config_plates);
+
+  // block_end_all_plate_data
+
+  }
+</script>
+
+<!-- block_end_page_Page1 -->

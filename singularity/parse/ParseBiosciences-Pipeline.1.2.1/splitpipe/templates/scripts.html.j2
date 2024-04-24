@@ -1,0 +1,494 @@
+<!-- block_start_scripts_base -->
+
+<!-- Load jquery scripts -->
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"
+></script>
+
+<script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"
+></script>
+
+<!-- Plotly plotly-latest.min.js -->
+<script
+  src="https://cdn.plot.ly/plotly-latest.min.js">
+</script>
+
+<!-- Load twitter bootstrap3 .min.js file -->
+<script
+  src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+  integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+  crossorigin="anonymous"
+></script>
+
+<!-- Following .js needs to be loaded for typeahead to work in searchboxes -->
+<script
+  charset="utf8"
+  src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"
+></script>
+
+<script>
+
+  /**
+  * The below comment block is for linter settings;
+  * It has to be its own line, as is
+  */
+
+  /*jshint esversion: 6 */
+
+  /**
+  * Replacement for 'bad' doc write function;
+  *   https://stackoverflow.com/questions/4537963/what-are-alternatives-to-document-write
+  */
+  document_write=function(s){
+    var scripts = document.getElementsByTagName('script');
+    var lastScript = scripts[scripts.length-1];
+    lastScript.insertAdjacentHTML("beforebegin", s);
+  };
+
+
+  /**
+  * Various use case flags from jinja
+  * Combine, target enrichment, tcr, focal, meta sample
+  */
+  const is_comb = {{pipeline_json['is_comb']}};
+  const is_targeted = {{pipeline_json['is_targeted']}};
+  const is_tcr_only = {{pipeline_json['is_tcr_only']}};
+  const is_tcr_parent = {{pipeline_json['is_tcr_parent']}};
+  const is_tcr = is_tcr_parent || is_tcr_only;
+  const is_focal = {{pipeline_json['is_focal']}};
+  const is_crispr = {{pipeline_json['is_crispr']}};
+  const is_focal_crispr = is_focal || is_crispr;
+  const is_meta_sample = {{pipeline_json['is_meta_sample']}};
+  const have_parent = {{pipeline_json['have_parent']}};
+
+  /* Style flag */
+  const alt_style_fmt = {{alt_style_fmt}};
+
+  /**
+  * Discrete color palettes for plotly (i.e. UMAP, saturation plot series)
+  *
+  * The below values were obtained from the plotly.express (Python);
+  *     import plotly.express as px
+  *     print(px.colors.qualitative.D3)
+  *     print(px.colors.qualitative.Pastel)
+  * 
+  * Default plotly (javascript) color scheme appears to be d3
+  *
+  * Create palette from pastel + lightened D3 + shuflled rainbow, N=30
+  */
+  const discol_d3 =
+        ['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD', 
+        '#8C564B', '#E377C2', '#7F7F7F', '#BCBD22', '#17BECF'];
+
+  const discol_pastel =
+        ['rgb(102, 197, 204)', 'rgb(246, 207, 113)', 'rgb(248, 156, 116)', 
+        'rgb(220, 176, 242)', 'rgb(135, 197, 95)', 'rgb(158, 185, 243)', 
+        'rgb(254, 136, 177)', 'rgb(201, 219, 116)', 'rgb(139, 224, 164)', 
+        'rgb(180, 151, 231)', 'rgb(179, 179, 179)'];
+
+  const discol_pb30 =
+        ['#66c8cf', '#f6cf71', '#f89c74', '#deb6f4', '#88c85f',
+        '#a2bcf4', '#fe8bb2', '#cbdd75', '#8ee3a7', '#b79be9',
+        '#bababa', '#579ed0', '#ffb26f', '#5ac45a', '#e27475',
+        '#bca0d4', '#af7f75', '#f0bee0', '#a4a4a4', '#d1d363',
+        '#63d0dc', '#b779f7', '#f779e1', '#798ef7', '#f7b779',
+        '#79f7b7', '#f7798e', '#e1f779', '#79e1f7', '#8ef779'];
+
+  /**
+  * Color palent for plotly layouts
+  */
+  function plotly_layout_set_colorway(lay_dict) {
+    /* lay_dict['colorway'] = discol_pastel; */
+    lay_dict['colorway'] = discol_pb30;
+  }
+  
+  /**
+  * Font for plotly layouts
+  */
+  function plotly_layout_set_font(lay_dict) {
+    lay_dict['font'] = {
+      family: '"M PLUS 2", sans-serif',
+      /* For testing 
+      color: "Cyan",
+      */
+    };
+  }
+
+
+  /*
+  * Summary table title line
+  */
+  function sum_title_line(page=1) {
+
+    console.log(`>> sum_title_line page ${page}`);
+
+    let raw_sample = " {{sum_json['cur_samp_name']}}";
+    let raw_wells = " {{sum_json['cur_samp_wells']}}";
+    let raw_n_slibs = {{sum_json['cur_samp_nsublibs']}};
+
+    let parts = [];
+    parts.push("<b>Sample:</b> " + raw_sample);
+    parts.push("<b>Wells:</b> " + raw_wells);
+    if ( Number(raw_n_slibs) > 1 ) {
+      parts.push("<b>Sublibs:</b> " + raw_n_slibs);
+    }
+    
+    // Get element to modify
+    let obj = null;
+    switch(page) {
+      case 3:
+        console.log(`++ sum_title_line case 3`);
+        obj = document.getElementById("pg3_sum_title_line");
+        break;
+      case 2:
+        console.log(`++ sum_title_line case 2`);
+        obj = document.getElementById("pg2_sum_title_line");
+        break;
+      default:
+        console.log(`++ sum_title_line case default`);
+        obj = document.getElementById("pg1_sum_title_line");
+    }
+    if(obj) {
+        obj.innerHTML = parts.join(' &ensp; ');
+        console.log(`++ sum_title_line update innerHTML`);
+    }
+    else {
+        console.log(`++ sum_title_line NO updating`);
+    }
+
+  }
+
+
+  /***
+  * Initialize report
+  */
+  function init_report() 
+  {
+    let first_page = "Page1";
+    if( is_tcr_only ) {
+      first_page = "Page3";
+    }
+
+    show_page(first_page);
+    sum_title_line();
+    // In case TCR page too
+    sum_title_line(page=3);
+
+    // Set visibility for cluster plot
+    set_umap_sel_box_vis();
+    if( ! is_focal_crispr ) {
+      set_selbox_vis_by_id("pg2-plotly-focal-btn", false);
+    }
+    update_umap_plot();
+  }
+
+
+  /***
+  * Set visibility for given page and all others
+  * Return true if changes made
+  */
+  function show_page(front_one)
+  {
+    // List of known page names
+    const page_list = "Page1,Page2,Page3,Page4".split(",");
+
+    // Only change anything if page is known and found
+    let changed = false;
+    if (page_list.includes(front_one) && document.getElementById(front_one)) {
+      for (let i = 0; i < page_list.length; i++) {
+        let doc = document.getElementById(page_list[i]);
+        if (doc) {
+          changed = true;
+          if (page_list[i] == front_one) {
+            doc.style.display = 'block';
+          }
+          else {
+            doc.style.display = 'none';
+          }
+        }
+      }
+    }
+    return changed;
+  }
+
+
+  /***
+  * Update visibility of umap plot selection boxes based on current (button) focus
+  */
+  function set_umap_sel_box_vis()
+  {
+    switch(cur_cmap_focus) {
+      case 'gene':
+        set_selbox_vis_by_id("varSelBox2", false);
+        set_selbox_vis_by_id("varSelBox1", true);
+        break;
+      case 'focal':
+        set_selbox_vis_by_id("varSelBox1", false);
+        set_selbox_vis_by_id("varSelBox2", true);
+        break;
+      default:
+        set_selbox_vis_by_id("varSelBox1", false);
+        set_selbox_vis_by_id("varSelBox2", false);
+    }
+  }
+
+
+  /***
+  * Attempt to find and set named object visibility
+  *
+  * For making visible, set display style to "inline";
+  *   https://www.w3schools.com/jsref/prop_style_display.asp
+  */
+  function set_selbox_vis_by_id(obj_id, show_obj)
+  {
+    let obj = document.getElementById(obj_id);
+    if(obj) {
+      if(show_obj) {
+        obj.style.display = "inline";
+      }
+      else {
+        obj.style.display = "none";
+      }
+    }
+  }
+
+
+  /**
+  * Called once just after loading everything
+  *     https://learn.jquery.com/using-jquery-core/document-ready/
+  *
+  * NOTE The dollar sign / function is shorthand for jQuery;
+  *   In other words $(element) is the same as jQuery(element)
+  *   The above function returns the "element" object
+  *   To select an element by name (id), preface with pound, e.g. $("#varSelBox1")
+  *   To select all elements by class, preface with dot, e.g. $(".class")
+  *   https://stackoverflow.com/questions/1107220/how-can-i-select-an-element-by-name-with-jquery
+  */
+  $(document).ready(
+    function(){
+
+      /*
+      * Set up display lists of choices in selector boxes... as typed
+      *  Selection box 1 and keys 1 (genes)
+      */
+      sbox_input = $("#varSelBox1");
+      sbox_input.typeahead({
+        source: umap_cmap_keys1,
+        autoSelect: true
+      });
+
+      // Selection box 2 and keys 2 (focal / crispr)
+      sbox_input = $("#varSelBox2");
+      sbox_input.typeahead({
+        source: umap_cmap_keys2,
+        autoSelect: true
+      });
+
+      /***
+      * For checkboxes in cluster section
+      */
+      $('input[type="checkbox"]').change(function() {
+        // TODO Clicking 'all' box fails to yield inputValue (i.e. next line fails)
+        let inputValue = $(this).attr("value");
+        let checked =  $(this)[0].checked;
+        $("tr").each(function() {
+          // this checks the first cell of each row of the table for a match
+          if($(this).find("td:eq(0)").html() === inputValue.toString()) {
+            //instead of just toggling, you check the status and then show/hide
+            if(checked) {
+              $(this).show();
+            } else {
+              $(this).hide();
+            }
+          }
+        });
+      });
+
+      /***
+      * Hover over tooltipe on page 2-
+      */
+      $('[data-toggle="tooltip"]').tooltip();
+
+    }
+  );
+
+
+  /***
+  *
+  */
+  function checkedAll() {
+    let elements = this.form.getElementsByTagName('input');
+    // iterate and change status
+    for (let i = elements.length; i--;) {
+      if(elements[i].type == 'checkbox') {
+        elements[i].checked = this.checked;
+        $(elements[i]).trigger("change"); // this triggers the function above
+      }
+    }
+  }
+
+
+  /***
+  * Number parsing
+  * Attempt to parse number (int or float) from word; If fail, return default
+  */
+  function get_num_str(word, def_num=0) {
+    let num = def_num.toString();
+    word = word.toString();
+
+    let rx = word.match(/[+-]?\d+(?:\.\d+)?/);
+    if(rx) {
+      num = rx[0];
+    }
+    return num;
+  }
+
+
+  function get_int(word, def_num=0) {
+    let num = get_num_str(word, def_num);
+    return parseInt(num, 10);
+  }
+
+
+  function get_float(word, def_num=0) {
+    let num = get_num_str(word, def_num);
+    return parseFloat(num);
+  }
+
+
+  /***
+  *   For decoding lzw encoded strinrgs
+  */
+  const char2num_dict = {"a":0, "b":1, "c":2, "d":3, "e":4, "f":5, "g":6,
+                         "h":7, "i":8, "j":9, "k":10, "l":11, "m":12, "n":13,
+                         "o":14, "p":15, "q":16, "r":17, "s":18, "t":19, "u":20,
+                         "v":21, "w":22, "x":23, "y":24, "z":25, "?":26};
+
+
+  /***
+  * LZW string decoding function
+  */
+  function lzw_decode(s) {
+    let dict = {};
+    let data = (s + "").split("");
+    let data_length = data.length;
+    let currChar = data[0];
+    let oldPhrase = currChar;
+    let out = currChar;
+    let code = 256;
+    let phrase;
+
+    // Loop starting at second position
+    for (let i=1; i<data_length; i++) {
+      let currCode = data[i].charCodeAt(0);
+      if(currCode < 256) {
+        phrase = data[i];
+      }
+      else {
+        phrase = dict['_'+currCode] ? dict['_'+currCode] : (oldPhrase + currChar);
+      }
+
+      // Extend output string by one char
+      out += phrase;
+
+      currChar = phrase.charAt(0);
+      dict['_'+code] = oldPhrase + currChar;
+      code++;
+      oldPhrase = phrase;
+    }
+    return out;
+  }
+
+
+  /***
+  *   Decode lzw char-encoded run-length-encoded string into list of numbers
+  *
+  *   raw_str = encoded string
+  *
+  *   Return list of numbers
+  */
+  function decode_nlist_lzw_char(raw_str) {
+
+    let raw_str_decode1 = lzw_decode(raw_str);
+    let raw_str_decode_len = raw_str_decode1.length;
+    let numlis = [];
+
+    for (let i = 0; i < raw_str_decode_len; i++) {
+      let num = char2num_dict[raw_str_decode1[i]];
+      // Check if next character is a number
+      let count_str = '';
+      while (i < (raw_str_decode1.length-1)) {
+        if(/^\d$/.test(raw_str_decode1[i+1])) {
+          count_str = count_str + raw_str_decode1[i+1];
+          i++;
+        }
+        else {
+          break;
+        }
+      }
+      let count = 1;
+      if(count_str.length>0) {
+        count = get_int(count_str);
+      }
+      for (let j = 0; j < count; j++) {
+        numlis.push(num);
+      }
+    }
+    return numlis;
+  }
+
+
+  /***
+  *   Decode simple (non lzw + char) run-length-encoded string into list of numbers
+  *   Works for generic number data (i.e. not restricted to int)
+  *
+  *   raw_str = encoded string
+  *
+  *   Return list of numbers
+  */
+  function decode_nlist(raw_str) {
+    let numlis = [];
+    let words = raw_str.split(",");
+    let words_len = words.length;
+    for (let i = 0; i < words_len; i++) {
+      let parts = words[i].split("x");
+      let num = get_float(parts[0]);
+      let count = 1;
+      if(parts.length > 1) {
+        count = get_int(parts[1]);
+      }
+      for (let j = 0; j < count; j++) {
+        numlis.push(num);
+      }
+    }
+    return numlis;
+  }
+
+  /***
+  *   Decode comma delminted string into list
+  *
+  *   Return list of strings
+  */
+  function decode_comlist(raw_str) {
+    let new_list = raw_str.split(",");
+    return new_list;
+  }
+
+  /***
+  *   Function to get the unique elements of array
+  *   (Seems to work with str, int, mixed)
+  */
+  function unique_sorted(vals) {
+    return [...new Set(vals)].sort(function(a, b) {
+      return a - b;
+    });
+  }
+
+</script>
+
+<!-- block_end_scripts_base -->

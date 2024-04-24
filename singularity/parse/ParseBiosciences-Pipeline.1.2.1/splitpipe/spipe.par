@@ -1,0 +1,476 @@
+# 2022-12-15 RTK; v1.0.4
+# Parameter file for split-pipe
+#   Default parameters are all commented out; Remove comments to activate
+#
+#   Keywords are not case sensitive and periods are replaced by underscores
+#       e.g. 'Genome.Dir' == 'genome_dir'
+#
+
+#mode    all
+
+
+# ======================================
+# Genome paths
+# Human only
+#genome_dir  /newvolume/genomes/hg38
+
+# Human-mouse combo
+#genome_dir  /newvolume/genomes/hg38_mm10
+
+
+# ======================================
+# Target enrichment
+# Target list file
+#targeted_list  parse_twist_immune_1000_gene_panel.csv
+
+
+# ======================================
+# Focal barcoding 
+# Flag to activte focal barcode use_case
+#focal_barcoding    False   
+
+# CRISPR use case
+#crispr False   
+
+# CRISPR guide file
+#crsp_guides    guides.csv
+# CRISPR guide match directly vs STAR
+#crsp_use_star False
+# CRISPR guide match Hamming dist max
+#crsp_match_hamming_dist    1
+
+
+# ======================================
+# TCR stuff
+# Flag to activte TCR use_case
+#tcr_analysis   False   
+
+# TCR genome name
+#tcr_genome     human
+# Use IMGT database?
+#tcr_use_imgt_db    False
+
+# Parameters for TCR script / algorithm
+# Length of the kmer to use in building contigs (default: 21)
+#tcr_kmer   21
+
+# Minimum number of reads required to build contigs (default: 2)
+#tcr_read_threshold 2
+
+# Number of bases to trim from reads before building contigs. (default: 30)
+# tcr_trim  30
+
+
+
+# ======================================
+# General run time behavior
+
+# Default = number of cpu; Fractional = fraction of this
+#nthreads       0
+# Max; This is for auto setting, not if number is given
+#max_threads    32
+
+# Random seed
+#rseed          777
+
+# Reuse existing files if possible (vs recreate fresh)
+#reuse False
+
+# add 'all-well' sample 
+#make_allwell       True 
+
+# add 'all-sample' sample 
+#make_allsample     True
+
+
+# Require that sample wells be unique (no overlap)
+#samp_wells_unique  False
+
+# Keep going even on failures; i.e. skip and continue
+#keep_going         True
+
+# Keep intermediate / temp files
+#keep_temps         False
+
+# Keep focal / CRISPR genome (e.g. from gfasta mkref-on-the-fly)
+#keep_focal_genome  True
+
+# Don't compress files
+#no_compress        False
+
+# Gzip / pigz compression level flag
+#gzip_compresslevel 4 
+
+# Only one step after (mode) starting point; Default is keep going; resume
+#one_step   False
+
+# Save run environment info (i.e. call 'conda list' etc)
+# Set to zero to skip
+#start_timeout  30
+
+
+# ======================================
+# Sequence processing
+# Read sequence template to extract polyN and barcode offsets from
+# bc_amp_seq  NNNNNNNNNN33333333GTGGCCGATGTTTCGCATCGGCGTACGACT22222222ATCCACGTGCTTGAGACTGTGG11111111
+
+# Barcode sets per round
+#   Format: bc_round_set <round> <suffix> 
+#   Expects files: 'bc_seq_<suffix>.csv' and 'bc_dict_<suffix>.pkl
+#bc_round_set    bc1     v2
+#bc_round_set    bc2     v1
+#bc_round_set    bc3     v1
+
+# Barcode match threshold
+# bc_edit_dist    2
+
+# Save barcode defs to file
+# bc_save_data_file True
+# "Clean up" saved barcodes (strip any of type 'x')
+# bc_save_data_clean True
+
+
+# ============
+# Kit scoring from barcodes
+# Score cutoff before problem and stop
+#kit_score_min  0.0
+# Score min before issuing warning
+#kit_score_warn 0.7
+# Score calc 'remaining fraction' cutoff 
+#kit_score_remain_frac  0.2
+
+# Flag to bypass kit scoring
+#kit_score_skip False
+
+
+# ============
+# TSO primer
+#tso_seq AACGCAGAGTGAATGGG
+#tso_read_limit  15
+
+
+# ======================================
+# Creating ref genome
+# Max gtf chromes not in fasta 
+#mkref_max_gtf_not_fas    0
+
+# Replace missing gene_name with gene_id
+#mkref_id_for_no_name True
+
+# Number of records required for guessing gtf format
+#mkref_gtf_guess_min    1
+
+# Min number of genes exons
+#mkref_min_genes 1
+#mkref_min_exons 1
+
+# Spacing of genome sampling (for alignment gene lookup)
+#mkref_gtf_dict_stepsize        10000
+
+
+# STAR parameters
+# STAR arg; splicing arg
+#mkref_star_splicing                True
+# STAR arg;
+#mkref_star_genomeSAindexNbases     14
+# STAR arg; sparsity of suffix array
+#mkref_star_genomeSAsparseD         2
+# STAR arg;
+#mkref_star_limitGenomeGenerateRAM  24000000000
+
+# STAR extra args; Append to standard list
+#   Should be string as comma,sep,list,without,any,spaces
+#   For example:    --sjdbGTFfeatureExon,gene,--genomeSAindexNbases
+#mkref_star_extra_args
+
+
+# ======================================
+# Input fastq sample (stats, bc correct, kit guess)
+#fastq_samp_slice   100000 1100000
+
+
+# ======================================
+# inQC
+# Run fastQC on input sample
+#inqc_fastqc_run True
+
+# Report FastQC warning messages to log
+#inqc_fastqc_show_warn  False
+
+# Min number of reads to start with
+# Note: This should be <= the size of fastq_samp_slice, as check via slice 
+#inqc_min_reads             100000
+
+# Min fraction of reads passing length tests
+#inqc_min_good_R1len_frac   0.5
+#inqc_min_good_R2len_frac   0.9
+
+
+# ======================================
+# Preprocessing
+# Min length for R1 read (to keep for alignment)
+# Note this is before any TSO trimming
+#pre_min_R1_len     45
+
+# Check names between R1 and R2 (to make sure files match).
+#pre_check_name_match    True
+# Further check that names for R1 have 1, R2 have 2
+#pre_check_name_R1R2    True
+
+# Header parsing regular expression
+# Should capture (name) and (read) and (sequencing index) if keeping
+#   Name = before space, without leading @ = 'words' plus colon
+#   Read = 1 or 2 in first colon-sep-part after space
+#   Index = last sequence colon-sep-part. May contain N
+#pre_head_regex    @(\S+)\s+([12])\S*:([ACGTN]*)$
+#pre_head_keep_seq_index True
+
+# Flag to output fastq files with reads *without* barcodes
+#pre_keep_no_bc_fq   False
+
+# Barcode correction 
+# Perfect barcode threshold value
+#pre_perfect_bc_cell_thresh 0.92
+
+
+# ======================================
+# Alignment
+# Min version for genome build
+#align_min_genome_version   v1.1.0
+
+# Min reads to proceed with alignment
+#align_min_start_reads      50000 
+
+# STAR parameters
+#align_star_outFilterMultimapNmax    3
+
+# Flag to keep non-mapping reads in output bam file
+#align_star_keep_no_map   False
+
+# STAR extra args; Append to standard list
+#   Should be string as comma,sep,list,without,any,spaces
+#   For example:    --sjdbGTFfeatureExon,gene,--genomeSAindexNbases
+#align_star_extra_args
+
+
+# ======================================
+# Post (alignment) processing
+# Min mapping fraction
+#post_min_map_frac  0.2
+
+
+# ======================================
+# Molinfo (bam processing)
+# Min mapping quality score for read
+#mol_min_mapq_score  255
+
+
+# ======================================
+# DGE stuff
+# Read stat sample size and skip
+
+# Min number of transcripts to run dge
+#dge_min_start_tscp   10000
+
+# Flag to copy *genes.csv files to local DGE output directories
+#dge_copy_dge_genes_file    True
+
+# Flag to output matrix with rows = genes, cols = cells (vs vice versa)
+#dge_out_rgene_ccell    False
+
+#dge_read_samp_size     1000000
+#dge_read_samp_skip     0
+
+# Subsample count initial step size and step-duplication frequency
+#dge_ssc_xstep_size     1000
+#dge_ssc_xstep_ndup     5
+
+# Multiplet threshold
+#dge_species_purity_thresh   0.9
+
+# --- Filtered DGE ---
+# Cell-calling transcript count parameters
+#dge_tscp_cut_given     None
+#dge_tscp_cut_min       30
+#dge_tscp_cut_max       None
+# Scale factor to shift raw transcript cutoff; Old alg (to v0.9.3) uses 0.5
+#dge_tscp_cut_scale_fac 1
+
+# Cell-calling cell count parameters
+#dge_cell_est       None
+#dge_cell_given     None
+# Margin X-fold from given cell estimate; Set min, max
+#dge_cell_gxfold    3
+#dge_cell_min       10
+# Max should be adjusted based on kit.
+#dge_cell_max       100000
+# Min fraction of transcripts in cells (Area Under Curve = 40%)
+#dge_cell_auc       0.4
+
+# External cell defs; List of path to output dir
+#dge_cell_list      something
+
+# Logic to scale cell limits by sample fraction
+#dge_cell_scale_by_frac True
+# Hard min even after scaling by well/cell fraction
+#dge_cell_hard_min  5
+
+# Min cells to keep genes 
+#dge_gene_cell_min   3
+
+# --- Unfiltered DGE ---
+#dge_tscp_cut_umin      10
+#dge_gene_cell_umin  1
+
+# -- Target enrichment filtered DGE --
+# Min number of genes without external cell def
+#dge_targeted_min_only_genes 100
+
+# Target-specific parameters
+#dge_tscp_cut_targeted_min  15
+#dge_tscp_cut_targeted_umin 5
+#dge_gene_cell_targeted_min 2
+
+# -- Transcript min read support --
+# Min read count for tscp; General case
+#dge_tscp_read_min      1
+# Min tscp count for gene
+#dge_gene_tscp_min      1
+
+# focal-barcode / CRISPR case
+#dge_tscp_read_fb_min   3
+#dge_gene_tscp_fb_min   5
+#dge_gene_tscp_fb_base  1
+
+
+# ======================================
+# Combine mode
+
+# Flag to recalculate tscp cutoff (rather than just merge)
+#comb_new_tscp      False
+# Flag to also combine unfiltered DGE files
+#comb_unfilt_dge    True
+
+
+# ======================================
+# Analysis stuff
+
+# For scanpy prints
+#ana_scanpy_verbosity   0
+
+# Save scanpy anndata after clustering, etc
+#ana_save_anndata  True
+
+# Memory efficient mode threshold;
+#   If more cells than this, don't zero center, incremental PCA
+#ana_mem_eff_cell_thresh    100000
+# Center with scaling; If true, allocate dense matrix
+#ana_scale_zero_center   True
+
+# Normalization target (i.e. tscp sum = this)
+#ana_norm_target_sum    10000
+# Scale max value (i.e. max after scaling)
+#ana_scale_max_value    10
+
+# PCA incremental in batchs of (at most) chunk_size
+#ana_pca_chunk_size 100000
+
+# PCA min "highly variable genes"; If fewer than this, use all genes
+#ana_pca_min_hvar  100
+# PCA dimension max and min
+#ana_pca_dim_max     50
+#ana_pca_dim_min     10
+# Special for targeted enrichment
+#ana_pca_dim_targeted_max   10 
+
+# PCA replacement irlbpy
+#ana_pca_irlbpy  True
+
+# Clustering min number of barcodes (cells)
+#ana_cluster_min_bc  30
+# Make sure cluster numbers start at 1 (scanpy yields 0)
+#ana_cluster_1base  True
+# Cluster algorithm
+#ana_cluster_alg     leiden'
+
+# UMAP stuff
+# Bigger number = more global clustering; scanpy default=15
+#ana_umap_n_neighbors   50
+# Bigger number = more dispersed clusers; scanpy default=0.5
+#ana_umap_min_dist  0.5
+# Save file with X,Y plot coords
+#ana_save_umap  True
+
+# Cluster gene enrichment tab top-N rank to include
+#ana_ctab_top_n      20
+# Cluster gene enrichment tab min demoninator DEN for score
+#   sco = log2(in-clus-ex / out-clus-exp) * (perc-in-clus-cells / max(perc-out-clus-cells, DEN) )
+#ana_ctab_sco_min_den    0.01
+
+# Filter genes to at least this many cells; See dge_gene_cell_min  
+#ana_gene_cell_min   3
+
+
+# ======================================
+# Reporting stuff
+
+# Save individual figure files
+#rep_save_figs      True
+
+# Report plate heatmaps
+# Make color scale start at zero?
+#rep_plate_min_zero True
+
+# Gex UMAP plot 
+# Cell subsample; < 1 = all
+#rep_umap_subsamp       15000
+# Min cells per cluster for subsample
+#rep_umap_ss_clus_min   10
+# Normalization scale factor; Sum of tscps for cell = this
+#rep_umap_norm_fac     1e4
+
+# Apply tscp threshold to focal / CRISPR UMAP plot; i.e. zero out no calls
+#rep_umap_fb_zero_nc    True
+
+# Gene URLs ... Given gene_id, apply to string for query
+# Default; NCBI is not organism-specific 
+#rep_gene_def_url    https://www.ncbi.nlm.nih.gov/gene/?term={gene_id}
+# Genome specific 
+#rep_gene_url        hg38    https://www.ncbi.nlm.nih.gov/gene/?term={gene_id}
+# EMBL is sometimes slow / down?
+#rep_gene_url        hg38    https://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g={gene_id}
+#rep_gene_url        mm10    https://grch37.ensembl.org/Mus_musculus/Gene/Summary?db=core;g={gene_id}
+
+# Alt style formatting
+#rep_alt_sty_fmt    False
+
+
+# ======================================
+# Clean stuff
+
+# Run clean up after each step (vs all at the end)
+#clean_per_step False
+
+# Generte a combinded summary zip file of html and agg stats
+#clean_make_summaries_zip   True
+
+
+# ======================================
+# Map-targets to screen
+# <key> <name> <filename>
+# If given filename not found, will try in genome_dir/
+#map_targ   <name>  <file>
+#map_targ   mtRNA   human_mt_rRNA.fas
+#map_targ   rRNA    human_rRNA.fas
+
+# Path under genome_dir to look for fasta targets
+#map_targ_genome_dir_path   map_targs
+
+# Map target search parameters
+#map_targ.kmer_len          30
+#map_targ.kmer_step         1
+#map_targ.kmer_search_max   41
+#map_targ.kmer_search_step  10
+
+
+

@@ -1,0 +1,49 @@
+<!-- block_start_page_Page3 -->
+
+<!-- block_start_div_id_Page3 -->
+<div id="Page3">
+  {% include "templates/navbar.html.j2" %}
+
+  <div class="container">
+    <div class="grid-container-tcr">
+      <div class="summary-stats">
+        <div id="stats-container" class="shadow-container">
+          <div id="scroll-buffer">
+            <!-- Keeps table from overlapping with scrollbar -->
+
+            <h5 class="text-center"><span id="pg3_sum_title_line"></span></h5>
+
+            <table class="table table-hover" id="summary-table">
+              <tbody>
+                {% for s in sum_json['stat_list'] %}
+                <tr>
+                  <td class="text-left">{{s.name}}</td>
+                  <td class="text-right">{{s.val}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="identified-cells">
+
+          <div class="container">
+            <div id="cell-warning" class="col-md-4">
+              <p>
+                There were zero / too few clonotypes to plot.
+              </p>
+            </div>
+          </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- block_end_div_id_Page3 -->
+
+<!-- block_end_page_Page3 -->

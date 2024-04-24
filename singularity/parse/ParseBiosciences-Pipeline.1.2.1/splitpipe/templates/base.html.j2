@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="X-UA-Compatible"
+      content="IE=edge"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <meta
+      name="description"
+      content="Single Cell Whole Transcriptome Experimental Report"
+    />
+    <meta
+      name="author"
+      content="Parse Biosciences (pipeline {{pipeline_json['pipeline_version']}})"
+    />
+    <title>Parse Biosciences Experimental Report</title>
+
+    <!-- Pipeline run details
+      pipeline_version: {{pipeline_json['pipeline_version']}}
+      chemistry:        {{pipeline_json['chemistry']}}
+      kit:              {{pipeline_json['kit']}}
+      use_case:         {{pipeline_json['use_case']}}
+    -->
+
+    <!-- Load (some) scripts using jinja2 -->
+    {% include 'templates/scripts.html.j2' %}
+
+    <!-- Load style using jinja2; Possibly use alt style -->
+    {% if alt_style_fmt == 'true' %}
+    <!-- alt style -->
+    {% include 'templates/style-alt.html.j2' %} {% else %}
+    <!-- normal style -->
+    {% include 'templates/style.html.j2' %} {% endif %}
+  </head>
+
+  <body onload="init_report()">
+    <!-- Load body using jinja2 -->
+    {% block body %} {% endblock %}
+  </body>
+
+  <footer>
+    <p><center>{{pipeline_json['version_footer']}}</center></p>
+  </footer>
+</html>

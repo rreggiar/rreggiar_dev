@@ -1,0 +1,18 @@
+{% extends 'templates/base.html.j2' %}
+
+
+{% block body %}
+
+    {# ---------- Page 1 --------- #}
+    {% include 'templates/page1.html.j2' %}
+
+    {# ---------- Page 2; Template may depend on issues --------- #}
+    {% if warning_json['status'] == 'cellwarning' %}
+        {% include 'templates/pg2_cellwarning.html.j2' %}
+    {% elif warning_json['status'] == 'clustwarning' %}
+        {% include 'templates/pg2_clustwarning.html.j2' %}
+    {% else %}
+        {% include 'templates/page2.html.j2' %} 
+    {% endif %}
+  
+{% endblock %}

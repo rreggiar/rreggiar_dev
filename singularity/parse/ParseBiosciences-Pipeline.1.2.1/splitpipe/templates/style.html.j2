@@ -1,0 +1,480 @@
+<!-- block_start_style_base -->
+
+<!-- Load the twitter bootstrap3 .css style sheet -->
+<link
+  rel="stylesheet"
+  href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+  integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+  crossorigin="anonymous"
+/>
+
+<!-- Font -->
+<link
+  rel='stylesheet'
+  href='https://fonts.googleapis.com/css?family=M PLUS 2'
+/>
+
+<style>
+
+  /* --------------------------- Global css ----------------------------- */
+
+  /* Global font */
+  body {
+    font-family: "M PLUS 2", sans-serif;
+  }
+
+
+  /**
+  * Bootstrap button color override; For cluster tabs 
+  * Could not get setting a selected or active color to stick; Sets but goes away
+  */
+  .btn-primary {
+    background-color: #550088;
+  }
+
+
+  /* Used for input varsel boxs */
+  .no-wrap {
+    white-space: nowrap;
+  }
+  .limited-width-200 {
+    max-width: 200px;
+  }
+
+
+  * {
+    scrollbar-width: thin;
+  }
+
+  /* For narrow scrollbars in chrome/safari*/
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: GhostWhite;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: lightgray;
+    border-radius: 20px;
+    border: 3px Grey;
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: GhostWhite;
+  }
+
+
+  /* Nav bar background color */
+  #nav-type {
+    background-color: #550088;
+    border-color: Black;
+  }
+  #nav-header {
+    width: 355px;
+    margin-right: 40px;
+  }
+
+  #logo {
+    width: 125px;
+    height: 35px;
+    margin-top: 8px;
+  }
+
+  /* Nav bar header text */
+  #nav-brand {
+    font-size: 21px !important;
+    color: White;
+    float: right;
+    padding-right: 0px;
+    text-align: right;
+  }
+
+  /* Nav bar link text */
+  #recipes-navbar-collapse-1 > ul > li > a {
+    font-size: 16px !important;
+    color: White;
+    font-weight: bold;
+  }
+
+  /* Nav bar company logo, margin order: top, right, bottom, left*/
+  #recipes-navbar-collapse-1 > div > img {
+    vertical-align: middle;
+    margin: 8px 0px 0px 180px;
+    width: 127px;
+  }
+
+
+  .tooltip-inner {
+    background: #22282e;
+  }
+
+  /* --------------------------- Page 1 css ----------------------------- */
+
+  .grid-container {
+    display: grid;
+    width: 1240px;
+    grid-template-columns: 556px 556px;
+    grid-template-rows: repeat(7, auto);
+    gap: 20px 20px;
+    margin-bottom: 5px;
+    grid-template-areas:
+      "summary-header summary-header"
+      "summary-stats identified-cells"
+      "tscp-per-cell genes-per-cell"
+      "plate-header plate-header"
+      "round-1-tscp round-1-cells"
+      "round-2-tscp round-2-cells"
+      "round-3-tscp round-3-cells"
+  }
+
+  .summary-header { grid-area: summary-header; }
+  .summary-stats { grid-area: summary-stats; }
+  .identified-cells { grid-area: identified-cells; }
+  .tscp-per-cell { grid-area: tscp-per-cell; }
+  .genes-per-cell { grid-area: genes-per-cell; }
+  .plate-header { grid-area: plate-header; }
+  .round-1-tscp { grid-area: round-1-tscp; }
+  .round-1-cells { grid-area: round-1-cells; }
+  .round-2-tscp { grid-area: round-2-tscp; }
+  .round-3-tscp { grid-area: round-3-tscp; }
+  .round-2-cells { grid-area: round-2-cells; }
+  .round-3-cells { grid-area: round-3-cells; }
+
+  img {
+    max-height: 480px;
+    padding: 5px;
+  }
+
+  #summary-table {
+    max-width: 530px;
+    table-layout: fixed;
+  }
+
+  #stats-container {
+    min-height: 457px;
+  }
+
+  #plate-header {
+    text-align: center;
+    margin: 0px;
+  }
+
+  .plotly-hmap {
+    /* No limit on height allows more heat map rows
+    max-height: 250px;
+    */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .shadow-container {
+    max-width: 575px;
+    max-height: 575px;
+    padding: 5px;
+    border: solid 1px #550088;
+    /* border-radius: 5px; */
+    border-radius: 1px;
+    box-shadow: 7px 8px 7px -4px darkgray;
+  } /* offset-x | offset-y | blur-radius | spread-radius | color */
+
+  .shadow-container-plt {
+    max-width: 575px;
+    max-height: 575px;
+    padding: 5px;
+    border: solid 1px #550088;
+    /* border-radius: 5px; */
+    border-radius: 1px;
+    box-shadow: 7px 8px 7px -4px darkgray;
+  }
+
+  #scroll-buffer > h5 {
+    font-size: 16px;
+  }
+
+  #scroll-buffer {
+    overflow-y: scroll;
+    margin: 2px;
+    max-height: 440px;
+  }
+
+  #summary-table {
+    margin-bottom: 0px;
+  }
+
+  #summary-table.table.table-hover tbody tr td {
+    line-height: 142%;
+    margin-bottom: 0px;
+  }
+
+  #cell-plate-1 {
+    max-height: 225px;
+  }
+
+  #tscp-plate-1 {
+    max-height: 225px;
+  }
+
+  /* --------------------------- Page 2 css ----------------------------- */
+  /* Container for everything on page 3 */
+  #Page2 > div:nth-child(3) {
+    max-width: 1400px;
+    min-width: 1400px;
+    max-height: 680px;
+    min-height: 680px;
+  }
+
+
+  /* ------- Checkbox items ------- */
+  /*general styles for all CSS Checkboxes*/
+  label {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  input[type=checkbox].css-checkbox {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    height:1px;
+    width:1px;
+    margin:-1px;
+    padding:0;
+    border:0;
+  }
+
+  input[type=checkbox].css-checkbox + label.css-label {
+    padding-left:20px;
+    height:15px;
+    width: auto;
+    display:inline-block;
+    line-height:15px;
+    background-repeat:no-repeat;
+    background-position: 0 0;
+    font-size:15px;
+    font-weight:normal;
+    vertical-align:middle;
+    cursor:pointer;
+  }
+
+  input[type=checkbox].css-checkbox:checked + label.css-label {
+    background-position: 0 -15px;
+  }
+
+  .css-label{
+    background-image:url({{checkbox}});
+    background-size: 15px;
+  }
+
+
+  /* ------- Cluster table and plot ------- */
+  /* Container for cluster filter items */
+  #filter-col {
+    /* max-width: 92px; */
+    max-width: 100px; 
+    max-height: 255px;
+    padding: 0px;
+    margin: 17px 10px 0px 0px;
+  }
+
+   /* Container for cluster filter header */
+   #filter-col > div:nth-child(1) > p {
+     font-size: 14px;
+     margin: 0px 0px 2px 0px;
+   }
+
+   /* Container for cluster filter itself */
+   #filter-div {
+     max-height: 255px;
+     min-height: 200px;
+     width: 88px;
+     padding: 4px;
+     border: solid 1px #550088;
+     /* border-radius: 2px; */
+     border-radius: 1px;
+     box-shadow: 7px 8px 7px -4px darkgray;
+   }
+
+   #filter-sub-div {
+     overflow-y: scroll;
+     max-height: 230px;
+     margin: 5px 11px;
+   }
+
+   /* Cluster filter table */
+   #diff-table table {
+     font-size: 14px;
+     overflow-y: scroll;
+     max-width: 50px;
+   }
+
+   #diff-table > label:nth-child(2) {
+     font-size: 14px;
+   }
+
+   /* Container for diff exp table and title */
+   #diff-table-col {
+     max-width: 500px;
+     max-height: 650px;
+     margin: 0px 20px 0px 5px;
+   }
+
+   #diff-table-col > div:nth-child(1) > h4 {
+     margin-left: -15px;
+   }
+
+   /* Container for diff exp table itself*/
+   #diff-table-col > div.row {
+     max-width: 500px;
+     max-height: 625px;
+     overflow-y: scroll; 
+     border: solid 1px #550088;
+     /* border-radius: 2px; */
+     border-radius: 1px;
+     box-shadow: 7px 8px 7px -4px darkgrey;
+   }
+
+   /* Diff exp table */
+   #diff-table {
+     table-layout: auto;
+     border-color: lightgray;
+     width: 100%;
+     border-collapse: collapse;
+     border: 1px solid darkgray;
+   }
+
+   /* Table cell border color */
+   #diff-table tr td {
+     border-color: lightgray;
+   }
+
+   /* Sticky header*/
+   #diff-table thead tr th {
+     position: sticky;
+     font-weight: normal;
+     background-color: #c4bcdc;
+     top: 0;
+   }
+
+   /* Table row alternating colors */
+   #diff-table > tbody > tr:nth-child(even) {
+     background: #e5e5f1;
+   }
+
+   /* Parent div for plotly umaps, control x postion from table*/
+   #plotly-parent-div {
+     max-width: 700px;
+     max-height: 650px;
+     left: 0px;
+     margin: 0px 0px 0px 0px;
+   }
+
+   /* child div for plotly umaps */
+   #plotly-child-div {
+     position: absolute;
+   }
+
+   .container.drop-shadow {
+     -webkit-box-shadow: 7px 8px 7px -4px darkgrey;
+     box-shadow: 7px 8px 7px -4px darkgrey;
+     /* border-radius:3px; */
+     border-radius:1px;
+     border: solid 1px #550088;
+     width: 620px;
+     height: 626px;
+     margin-top: 39px;
+   }
+
+   #plotly-tabs{
+     margin-top: 15px;
+   }
+
+   #varSelBox {
+     display:none;
+   }
+
+  /* --------------------------- Page 3 TCR css ------------------------- */
+
+   #diff-table-col #clonotypes-container{
+     max-width: 1200px;
+   }
+
+   #clonotypes-container > div:nth-child(1) > h4 {
+     margin-left: -15px;
+   }
+
+   /* Container for diff exp table itself*/
+   #clonotypes-container > div.row {
+     max-width: 1200px;
+     max-height: 500px;
+     overflow-y: scroll;
+     border: solid 1px #550088;
+     /* border-radius: 2px; */
+     border-radius: 1px;
+     box-shadow: 7px 8px 7px -4px darkgrey;
+   }
+
+   /* Table cell border color */
+   #clonotypes-container tr td {
+     border-color: lightgray;
+   }
+
+   /* Sticky header*/
+   #clonotypes-container thead tr th {
+     position: sticky;
+     font-weight: normal;
+     background-color: #c4bcdc;
+     top: 0;
+   }
+
+   /* Table row alternating colors */
+   #clonotypes-container div table > tbody > tr:nth-child(even) {
+     background: #e5e5f1;
+   }
+
+   .grid-container-tcr {
+     display: grid;
+     width: 1240px;
+     grid-template-columns: 556px 556px;
+     grid-template-rows: auto;
+     gap: 20px 20px;
+     margin-bottom: 30px;
+     grid-template-areas:
+       "summary-header summary-header"
+       "summary-stats identified-cells"
+   }
+
+  /*  ------------ Low cell count / warning page css -------------------- */
+
+   #cell-warning {
+     border: solid 2px #550088;
+     padding: 10px;
+     width: 470px;
+     text-align: center;
+     font-size: medium;
+     border-radius: 6px;
+     margin-left: 180px;
+     margin-top: 100px;
+   }
+
+   #clust-warning {
+     border: solid 2px #550088;
+     padding: 10px;
+     width: 470px;
+     text-align: center;
+     font-size: medium;
+     border-radius: 6px;
+     margin-left: 180px;
+     margin-top: 100px;
+   }
+
+</style>
+
+<!-- block_end_style_base -->

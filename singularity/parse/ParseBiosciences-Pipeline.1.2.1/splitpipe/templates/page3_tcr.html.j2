@@ -1,0 +1,144 @@
+<!-- block_start_page_Page3 -->
+
+<!-- block_start_div_id_Page3 -->
+<div id="Page3">
+  {% include "templates/navbar.html.j2" %}
+
+  <div class="container">
+    <div class="grid-container-tcr">
+      <!-- Summary table -->
+      <div class="summary-stats">
+        <div
+          id="stats-container"
+          class="shadow-container"
+        >
+          <div id="scroll-buffer">
+            <!-- Keeps table from overlapping with scrollbar -->
+
+            <h5 class="text-center"><span id="pg3_sum_title_line"></span></h5>
+
+            <table
+              class="table table-hover"
+              id="summary-table"
+            >
+              <tbody>
+                {% for s in sum_json['stat_list'] %}
+                <tr>
+                  <td class="text-left">{{s.name}}</td>
+                  <td class="text-right">{{s.val}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Freq histogram or warning -->
+      <div class="identified-cells">
+        {% if warning_json['n_clonotypes'] < 2 %}
+        <div class="container">
+          <div
+            id="cell-warning"
+            class="col-md-4"
+          >
+            There were zero / too few clonotypes to plot.<br />
+            Number of clonotypes called: {{ warning_json['n_clonotypes'] }}<br />
+          </div>
+        </div>
+        {% else %}
+        <div class="shadow-container">
+          <div
+            class="plotly-page-1"
+            id="pg3-plotly-clonotype-bar"
+          ></div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- End grid-tcr div -->
+    </div>
+
+    <!-- Table or nothing -->
+    {% if warning_json['n_clonotypes'] > 0 %}
+    <div
+      id="clonotypes-container"
+      class="col-md-12"
+    >
+      <div>
+        <script>
+          let clono_title_str = "<h4 class='text-left'>";
+          clono_title_str = clono_title_str + "Top Clonotypes";
+          document_write(clono_title_str);
+        </script>
+      </div>
+
+      <div class="row">{{clonotype_table_html}}</div>
+
+      {% endif %}
+    </div>
+  </div>
+  <!-- block_end_div_id_Page3 -->
+
+  <script>
+    const clono_data = [{
+      type: 'bar',
+      y: {{clonotype_dict['clonotype_id']}},
+      x: {{clonotype_dict['frequency']}},
+      text: {{clonotype_dict['hover_text']}},
+      orientation: 'h',
+      hoverinfo: 'text',
+      /* parse purple; Was default blue */
+      marker: {
+          color: "#550088",
+      },
+    }];
+
+    /*** Clonotype bar chart axis precision
+    * Below code based on output from chatGPT 2023-03
+    */
+    // Determine the maximum value of the x-axis tick values
+    let clono_xMax = Math.max.apply(null, clono_data[0].x);
+    // Switch to scientific notation if the maximum value is greater than 1000 or less than 0.001
+    if (clono_xMax > 1000 || clono_xMax < 0.01) {
+      clono_x_tickformat = '.1e';
+    }
+    else {
+      clono_x_tickformat = '.1f';
+    }
+
+    const clono_layout = {
+      width: 500,
+      height: 445,
+      margin: {"l":120,"t":80,"r":20,"b":60},
+      hovermode: "closest",
+      plot_bgcolor: "white",
+      showlegend: false,
+      title: "Top Clonotype Frequencies",
+      xaxis: {
+        zeroline: false,
+        showticklabels: true,
+        tickformat: clono_x_tickformat,
+        autorange: true,
+        showgrid: true,
+        showline: true,
+        title: {
+          text: "Frequency"
+        },
+      },
+      yaxis: {
+        zeroline: false,
+        showticklabels: true,
+        autorange: true,
+        showgrid: true,
+        showline: true,
+      },
+    }
+
+    plotly_layout_set_font(clono_layout);
+    /* plotly_layout_set_colorway(clono_layout); */
+    Plotly.newPlot('pg3-plotly-clonotype-bar', clono_data, clono_layout);
+  </script>
+
+  <!-- block_end_page_Page3 -->
+</div>

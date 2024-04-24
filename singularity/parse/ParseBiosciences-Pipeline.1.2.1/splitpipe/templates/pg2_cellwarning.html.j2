@@ -1,0 +1,15 @@
+
+<div id="Page2">
+  {% include "templates/navbar.html.j2" %}
+  <div class="container">
+    <div id="cell-warning" class="col-md-4">
+      <p>
+        There are too few cells and/or genes to run clustering.<br />
+        Sample has {{warning_json['n_cells']}} cells,
+        {{warning_json['n_genes']}} genes.<br />
+        There must be at least {{warning_json['min_bc']}} in a given sample.
+      </p>
+    </div>
+  </div>
+</div>
+

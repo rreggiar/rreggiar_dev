@@ -1,0 +1,631 @@
+<!-- block_start_page_Page2 -->
+
+{# Google "bootstrap grid" for breakdown of grid arrangements#}
+
+<!-- block_start_div_id_Page2 -->
+<div id="Page2">
+  {% include "templates/navbar.html.j2" %}
+
+  <div class="container">
+    <div
+      class="col-md-2"
+      id="filter-col"
+    >
+      <div>
+        <p>Show clusters</p>
+      </div>
+      <div id="filter-div">
+        <div id="filter-sub-div">
+          <form
+            action=""
+            method="post"
+            name="diff-filter"
+            id="diff-filter"
+          >
+            <table>
+
+              <tr>
+                <td>
+                  <input
+                    class="css-checkbox"
+                    type="checkbox"
+                    name="cluster_ids"
+                    id="filter-checkbox"
+                    onclick="checkedAll.call(this);"
+                    checked
+                  />
+                  <label
+                    for="filter-checkbox"
+                    class="css-label"
+                  >
+                    all
+                  </label>
+                </td>
+              </tr>
+
+              {% for name in clust_names %}
+              <tr>
+                <td>
+                  <!-- NOTE about prettier and jinja2 formatting
+                        Below sould be:
+                        value={{name}}  NOT value="{{name}}" 
+                        id={{name}}     NOT id="{{name}}" 
+                  -->
+                  <input
+                    class="css-checkbox"
+                    value={{name}}
+                    type="checkbox"
+                    name="cluster_ids"
+                    id={{name}}
+                    checked
+                  />
+                  <!-- Should be for={{name}} NOT for="{{name}}" as prettier wants -->
+                  <label
+                    for={{name}}
+                    class="css-label"
+                  >
+                    {{name}}
+                  </label>
+                </td>
+              </tr>
+
+              {% endfor %}
+            </table>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="diff-table-col"
+      class="col-md-5"
+    >
+      <div>
+        <script>
+          let diftab_title_str = "<h4 class='text-left'>";
+          if (is_targeted) {
+            diftab_title_str =
+              diftab_title_str + "Differentially Expressed Target Genes</h4>";
+          } else {
+            diftab_title_str =
+              diftab_title_str + "Differentially Expressed Genes</h4>";
+          }
+          document_write(diftab_title_str);
+        </script>
+      </div>
+      <div class="row">{{diff_exp_table_html}}</div>
+    </div>
+
+    <div
+      id="plotly-parent-div"
+      class="col-md-5"
+    >
+      <div>
+        <h4 class="text-left"></h4>
+      </div>
+
+      <div class="container drop-shadow">
+        <div id="plotly-child-div">
+          <div
+            id="plotly-tabs"
+            class="form-inline no-wrap"
+          >
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="pg2-plotly-cluster-btn"
+            >
+              Clusters
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="pg2-plotly-sample-btn"
+            >
+              Samples
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="pg2-plotly-gene-btn"
+            >
+              Gene Exp
+            </button>
+
+            <!-- Always include focal button; If not focal, this is hidden -->
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="pg2-plotly-focal-btn"
+            >
+              CRISPR
+            </button>
+
+            <input
+              id="varSelBox1"
+              class="form-control form-horizontal typeahead twitter-typeahead limited-width-200"
+              data-provide="typeahead"
+              placeholder="Gene name..."
+              display="none"
+              type="text"
+              autocomplete="off"
+              size="25"
+            />
+
+            <input
+              id="varSelBox2"
+              class="form-control form-horizontal typeahead twitter-typeahead limited-width-200"
+              data-provide="typeahead"
+              placeholder="Guide name..."
+              display="none"
+              type="text"
+              autocomplete="off"
+              size="25"
+            />
+          </div>
+          <div
+            class="plotly-container"
+            id="pg2-plotly-umap"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- block_end_div_id_Page2 -->
+
+<script>
+
+    /*https://community.plotly.com/t/how-to-remove-mode-bar-buttons/34002/3 list of all buttons*/
+
+    /***
+    * UMAP plot vars
+    *
+    * Plotly raw variables (as passed)
+    * UMAP X,Y coords and "color" cmap with encoded strings of data
+    * Cluster and sample info also for UMAP plot
+    *
+    * X, Y coords decoded once as reals
+    * Clusters and samples directly, unencoded
+    * Dict of cmap encoded strings; gene names = keys
+    * Possibly two groups: Normal = 1, and focal/crispr = 2 (declared empty at first)
+    */
+
+  <!-- block_start_umap_data -->
+
+    const umap_x = decode_nlist( {{umap_json['umap_x']}} );
+    const umap_y = decode_nlist( {{umap_json['umap_y']}} );
+
+    const umap_cells = decode_comlist( {{umap_json['umap_cells']}} );
+
+    const samples_raw = decode_comlist( {{umap_json['umap_samples']}} );
+    const clusters_raw = decode_comlist( {{umap_json['umap_clusters']}} );
+
+  <!-- block_start_umap_cmap1 -->
+    const umap_cmap_dict1 = {{umap_json['umap_cdata']}};
+  <!-- block_end_umap_cmap1 -->
+
+  <!-- block_start_umap_cmap2 -->
+    const umap_cmap_dict2 = {};
+  <!-- block_end_umap_cmap2 -->
+
+  <!-- block_end_umap_data -->
+
+    /* List of keys for selection boxes */
+    const umap_cmap_keys1 = Object.keys(umap_cmap_dict1);
+    const umap_cmap_keys2 = Object.keys(umap_cmap_dict2);
+
+    /* Get the unique cluster and sample names, counts */
+    const unique_clusters = unique_sorted(clusters_raw);
+    const num_clust = unique_clusters.length
+
+    const unique_samples = unique_sorted(samples_raw);
+    const num_samples = unique_samples.length
+
+    /* Plot format parameter values */
+    const mkSize = 4;
+
+
+    /**
+    * State variable initial value defaults
+    */
+    // First active tab
+    let cur_cmap_focus = 'cluster';
+    // Selection in normal selection box (i.e. "gene")
+    let cur_cmap_key1 = "gene_count";
+    // Selection in focal selection box
+    let cur_cmap_key2 = "gRNA_count";
+
+
+    const config_umap = {
+      modeBarButtonsToRemove: [
+      "autoScale2d",
+      "hoverClosestCartesian",
+      "hoverCompareCartesian",
+      "sendDataToCloud",
+      "tableRotation",
+      "toggleSpikelines", ],
+      displaylogo: false
+    };
+
+    /**
+    * Get data info for UMAP plot obj
+    * Input = tuple from cmap_dict
+    */
+    function get_umap_data_info(cmap_tup) {
+      /**
+      * Decode and other settings are data-dependent
+      */
+
+      /* xxx
+      console.log(`++ get_umap_data_info t2 ${cmap_tup[2]}`);
+      */
+
+      /**
+      * cmap_tup has 4 elements: [desc, scale, encode_flag, data_str]
+      */
+      let raw_desc = cmap_tup[0];
+      let raw_scale = cmap_tup[1];
+      let encode_flag = cmap_tup[2];
+      let data_str = cmap_tup[3];
+
+      /**
+      * Decode data string into number list
+      */
+      let num_list = [];
+      if (encode_flag == 'lzw' ) {
+        num_list = decode_nlist_lzw_char(data_str);
+      }
+      else {
+        num_list = decode_nlist(data_str);
+      }
+
+      /**
+      * Hover text and scale bar report text based on description
+      */
+      let report_scale = "";
+      let hover_text = "";
+      if (raw_desc) {
+        hover_text = raw_desc + ":";
+        if (raw_scale) {
+          report_scale = raw_desc + "<br>" + raw_scale;
+        }
+      }
+      else {
+        if (raw_scale) {
+          report_scale = raw_scale;
+        }
+      }
+
+      /**
+      * Sort x,y,c based on c. This ensures high expression
+      *   points end up on top layer of plot.
+      */
+      let xyct = [];
+      let num_list_len = num_list.length;
+      for (let i=0; i < num_list_len; i++) {
+        let xval = umap_x[i];
+        let yval = umap_y[i];
+        let cval = num_list[i];
+        let tval = num_list[i];
+        let cell = umap_cells[i];
+        xyct.push({c:cval, x:xval, y:yval, t:tval, cell:cell});
+      }
+
+      function compare( a, b ) {
+        if ( a.c < b.c ){
+          return -1;
+        }
+        if ( a.c > b.c ){
+          return 1;
+        }
+        return 0;
+      }
+      xyct.sort(compare);
+      let x_sorted = xyct.map(a => a.x);
+      let y_sorted = xyct.map(a => a.y);
+      let c_sorted = xyct.map(a => a.c);
+      let t_sorted = xyct.map(a => a.t);
+      let cell_sorted = xyct.map(a => a.cell);
+
+      /* xxx
+      console.log(`++ get_umap_data_info rep ${report_scale} hov ${hover_text}`);
+      console.log(`+E get_umap_data_info C ${c_sorted.length} ${c_sorted} T ${t_sorted.length} ${t_sorted}`);
+      console.log(`   << get_umap_data_info`);
+      */
+
+      /***
+      * Custom color map for gex (i.e. replace 'Reds')
+      * The numbers are the fraction of range min-max; 0=min, 1=max
+      *     Below is kind of purple, magenta
+      let cust_colorscale = [ [0, '#f8edf8'], [0.67, `#d05beb`], [1, '#7000b5'] ];
+      */
+
+      /***
+      * Create as [{ ... }]
+      * For cell to show up in hover template, need to set to 'customdata'
+      * The '<extra></extra>' part in hovertemplate hides the name (e.g. 'PlotGex')
+      */
+      const data_info=[{
+        x : x_sorted,
+        y : y_sorted,
+        name: "PlotGex",
+        text: c_sorted,
+        customdata: cell_sorted,
+        hoverinfo: "text",
+        type:"scatter",
+        mode:"markers",
+
+        hovertemplate: "<b>" + hover_text + "</b> %{text} <br>" +
+          "<b>Cell: </b> %{customdata} " +
+          "<extra></extra>",
+
+        showlegend: false,
+        "marker" : {
+          color : c_sorted,
+          opacity : 0.5,
+          size : mkSize,
+          /* If custom
+          colorscale: cust_colorscale,
+          */
+          colorscale :"Reds",
+          colorbar : {
+            title : report_scale,
+          }
+        }
+      }];
+
+      return data_info;
+    }
+
+
+    /**
+    * Get UMAP plot layout info for Plotly obj
+    */
+    function get_umap_layout_info() {
+      const new_obj = {
+        title: "",
+        width: 600,
+        height: 550,
+        margin:{"l":20,"t":70,"r":20,"b":20},
+        hovermode: "closest",
+        plot_bgcolor: "white",
+        showlegend: true,
+        xaxis: {
+          zeroline: false,
+          showticklabels: false,
+          showgrid: false,
+          showline: false,
+          title: {
+            text: "UMAP 1"
+          },
+        },
+        yaxis: {
+          zeroline: false,
+          showticklabels: false,
+          showgrid: false,
+          showline: false,
+          title: {
+            text: "UMAP 2"
+          },
+        },
+      };
+      return new_obj;
+    }
+
+
+    /**
+    * Draw UMAP gex plot via Plotly react
+    *   Depends on several (global) state vars
+    */
+    function update_umap_plot() {
+
+      set_umap_sel_box_vis();
+
+      let cmap_key = '';
+      let up_data = null;
+      let sel_box = null;
+      let title_pref = '';
+
+      /* xxx
+      */
+      console.log(`>> update_umap_plot cmap_focus ${cur_cmap_focus}, keys ${cur_cmap_key1} ${cur_cmap_key2}`);
+
+      switch(cur_cmap_focus) {
+        case 'cluster':
+          umap_layout.title = 'Clusters';
+          Plotly.react("pg2-plotly-umap", traces_clusters, umap_layout, config_umap);
+          break;
+
+        case 'sample':
+          umap_layout.title = 'Samples';
+          Plotly.react("pg2-plotly-umap", traces_samples, umap_layout, config_umap);
+          break;
+
+        // Button 1; selection box 1, color map 1, etc
+        case 'gene':
+          sel_box = document.getElementById("varSelBox1");
+          cmap_key = $.trim(sel_box.value);
+          if(! cmap_key) {
+              cmap_key = cur_cmap_key1;
+          }
+          // Only prefix if focal (extra tab)
+          title_pref = '';
+          if ( is_focal_crispr ) {
+            title_pref = 'Gene Exp: ';
+          }
+
+          console.log(`++ update_umap_plot gene Query ${cmap_key}`);
+
+          if(jQuery.inArray(cmap_key, Object.keys(umap_cmap_dict1)) !== -1) {
+
+            console.log(`++ update_umap_plot gene cmap_key ${cmap_key} Found`);
+
+            up_data = get_umap_data_info(umap_cmap_dict1[cmap_key]);
+            umap_layout.title = title_pref + cmap_key;
+            Plotly.react("pg2-plotly-umap", up_data, umap_layout, config_umap);
+            cur_cmap_key1 = cmap_key;
+          }
+
+          /* xxx */
+          else {
+              console.log(`++ update_umap_plot gene cmap_key ${cmap_key} NOT found`);
+          }
+
+          break;
+
+        // Button 2; selection box 2, color map 2, etc
+        case 'focal':
+          sel_box = document.getElementById("varSelBox2");
+          cmap_key = $.trim(sel_box.value);
+          if(! cmap_key) {
+              cmap_key = cur_cmap_key2;
+          }
+          title_pref = 'CRISPR: ';
+          if(jQuery.inArray(cmap_key, Object.keys(umap_cmap_dict2)) !== -1) {
+            up_data = get_umap_data_info(umap_cmap_dict2[cmap_key]);
+            umap_layout.title = title_pref + cmap_key;
+            Plotly.react("pg2-plotly-umap", up_data, umap_layout, config_umap);
+            cur_cmap_key2 = cmap_key;
+          }
+          break;
+      }
+
+      /* xxx
+      */
+      console.log(`<< update_umap_plot cmap_focus ${cur_cmap_focus}, keys ${cur_cmap_key1} ${cur_cmap_key2}`);
+
+    }
+
+
+    /* Layout used for UMAP;
+    * Single one, single init shared by cluster, sample, GEX tabes
+    *   Note that this "remembers" state like zoom-in between the different
+    *   tabs (e.g. resetting it, uncouples shared zoom behavior)
+    */
+    const umap_layout = get_umap_layout_info();
+
+    /**
+    * Initialize color-by-cluster traces
+    */
+    let traces_clusters = [];
+    for (i = 0; i < num_clust; i++) {
+      /* Update x, y based on cluster assignments */
+      /* TODO; jshint complains:
+      * Functions declared within loops referencing an outer scoped variable may lead to confusing semantics.
+      */
+      let x_sub = umap_x.filter( function (eachElem, index) {
+        return clusters_raw[index] == unique_clusters[i];
+      } );
+      let y_sub = umap_y.filter( function (eachElem, index) {
+        return clusters_raw[index] == unique_clusters[i];
+      } );
+
+      /**
+      * TODO (Possibly obsolete? old notes?
+      * the meta (as opposoed to text) key is required to get the hovertemplate
+      *   working in this plot. Interestingly, it doesn't work like this in the
+      *   expression plot where we use the text key to display gene expression.
+      *
+      *   the "meta" key is required to add additional hover over text.
+      *   This can consist of mutiple arrays that are called in hovertemplate
+      *   // (e.g %{meta[0]. %{meta[1]})
+      */
+
+      traces_clusters.push({
+        x: x_sub,
+        y: y_sub,
+        hoverinfo: "text",
+        mode: "markers",
+        type: "scatter",
+        name: unique_clusters[i],
+        marker: {size:4},
+        meta: unique_clusters[i],
+        hovertemplate:
+          "<b>Cluster:</b> %{meta}<br>" +
+          "<extra></extra>",
+      });
+    }
+
+
+    /**
+    * Initialize color-by-sample traces
+    */
+    let traces_samples = [];
+    for (let i = 0; i < num_samples; i++) {
+      // Update x, y based on sample assignments
+      /* TODO; jshint complains:
+      * Functions declared within loops referencing an outer scoped variable may lead to confusing semantics.
+      */
+      let x_sub = umap_x.filter( function (eachElem, index) {
+        return samples_raw[index] == unique_samples[i];
+      } );
+      let y_sub = umap_y.filter( function (eachElem, index) {
+        return samples_raw[index] == unique_samples[i];
+      } );
+
+      traces_samples.push({
+        x: x_sub,
+        y: y_sub,
+        hoverinfo: "text",
+        mode: "markers",
+        type: "scatter",
+        name: unique_samples[i],
+        marker: {size:4},
+        meta: unique_samples[i],
+        hovertemplate:
+          "<b>%{meta}</b><br>" +
+          "<extra></extra>",
+      });
+    }
+
+
+    /**
+    * UMAP buttons (color by cluster, sample, gene, focal)
+    * Click to choose new color type
+    */
+    $("#pg2-plotly-cluster-btn").click( function adjustValue1() {
+      cur_cmap_focus = 'cluster';
+      update_umap_plot();
+    });
+
+    $("#pg2-plotly-sample-btn").click( function adjustValue2() {
+      cur_cmap_focus = 'sample';
+      update_umap_plot();
+    });
+
+    $("#pg2-plotly-gene-btn").click( function adjustValue3() {
+      cur_cmap_focus = 'gene';
+      update_umap_plot();
+    });
+
+    $("#pg2-plotly-focal-btn").click( function adjustValue4() {
+      cur_cmap_focus = 'focal';
+      update_umap_plot();
+    });
+
+
+    /**
+    * Change = new gene selected
+    */
+    $("#varSelBox1").change( function() {
+      update_umap_plot();
+    } );
+
+    $("#varSelBox2").change( function() {
+        update_umap_plot();
+    } );
+
+
+    /**
+    * New UMAP plot; Init color is by cluster
+    */
+    plotly_layout_set_font(umap_layout)
+    plotly_layout_set_colorway(umap_layout)
+    Plotly.newPlot("pg2-plotly-umap", traces_clusters, umap_layout, config_umap);
+</script>
+
+<!-- block_end_page_Page2 -->

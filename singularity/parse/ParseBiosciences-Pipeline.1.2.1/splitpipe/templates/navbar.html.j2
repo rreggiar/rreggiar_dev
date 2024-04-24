@@ -1,0 +1,81 @@
+<!-- block_start_navbar -->
+
+<!-- Dummy nav bar for spacing-->
+<nav class="navbar navbar-default"></nav>
+
+<!-- Static navbar -->
+<nav
+  id="nav-type"
+  class="navbar navbar-default navbar-fixed-top"
+>
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div
+      id="nav-header"
+      class="navbar-header"
+    >
+
+      <!-- NOTE about prettier and jinja2 formatting
+
+            Below src=((logo)) should not be quoted (or simple paren but curly braces)
+
+      -->
+
+      <a href="http://www.parsebiosciences.com/"
+        ><img
+          id="logo"
+          src={{logo}}
+          width="67"
+          height="30"
+          align="left"
+      /></a>
+      <a
+        id="nav-brand"
+        class="navbar-brand"
+      >
+        Experimental Report</a
+      >
+      <button
+        type="button"
+        class="navbar-toggle collapsed"
+        data-toggle="collapse"
+        data-target="#recipes-navbar-collapse-1"
+        aria-expanded="false"
+      >
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div
+      class="collapse navbar-collapse"
+      id="recipes-navbar-collapse-1"
+    >
+      <ul class="nav navbar-nav">
+        <!-- block_start_list_navbar -->
+        <li>
+          <a
+            href="#"
+            onclick="return show_page('Page1');"
+            >Summary</a
+          >
+        </li>
+        <li>
+          <a
+            href="#"
+            onclick="return show_page('Page2');"
+            >Clustering</a
+          >
+        </li>
+        <!-- block_end_list_navbar -->
+      </ul>
+    </div>
+    <!--/.nav-collapse -->
+  </div>
+  <!-- /.container -->
+</nav>
+
+<!-- block_end_navbar -->

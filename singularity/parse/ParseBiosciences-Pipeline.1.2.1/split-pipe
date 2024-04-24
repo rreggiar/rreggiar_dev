@@ -1,0 +1,462 @@
+#!/usr/bin/env python
+#   Pipeline to process Parse Bioscience's Single Cell data.
+#
+#   Copyright (c) 2024 Parse Biosciences
+#
+#   See company page for background information, usage instructions and license.
+#   https://www.parsebiosciences.com/
+#
+
+import os
+import sys
+import argparse
+
+
+from splitpipe import utils, bcutils, kits, spclass, spoutdir, pb_help
+from splitpipe import inqc, align, molinfo, dge, analysis, report
+from splitpipe import combine, clean, mkref, tcr
+
+
+VER_NUM = "v1.2.1"
+
+VERSION = os.path.basename(__file__) + " " + VER_NUM
+
+
+# ----------------------------------------------------------------------------
+def maybe_try(story):
+    print(f"{VERSION}")
+    print(story)
+    print("  Maybe try '--help' or '--explain'")
+    print()
+
+
+# ----------------------------------------------------------------------------
+# Main program
+def main():
+    story = f"SplitPipe data processing pipeline {VER_NUM}"
+    parser = argparse.ArgumentParser(description=story)
+
+    # TODO; Possibly organize args by group; group = parser.add_argument_group('group')
+    # TODO https://docs.python.org/3.7/library/argparse.html#argparse.ArgumentParser.add_argument_group
+
+    # Don't set any defaults; These are handled in the SplitPipe class
+    parser.add_argument(
+        "-m", "--mode", help="Mode dictates process(s) to run; REQUIRED; See -explain"
+    )
+    parser.add_argument(
+        "-c", "--chemistry", default="", help="Set chemistry version for data"
+    )
+    parser.add_argument("--kit", default="", help="Set kit and kit-specific parameters")
+    parser.add_argument("-p", "--parfile", help="Parameter file")
+    parser.add_argument("--run_name", help="Name for run / sublibrary")
+    parser.add_argument("--fq1", help="fastq1 - mRNA reads")
+    parser.add_argument("--fq2", help="fastq2 - Reads containing barcodes and polyN")
+    parser.add_argument("--output_dir", help="Output dir (created as needed)")
+    parser.add_argument("--genome_dir", help="Path containing reference genome")
+    parser.add_argument(
+        "--parent_dir",
+        help="Path to output_dir to use as parent; Use existing cell calls, etc",
+    )
+    parser.add_argument(
+        "--targeted_list",
+        help="Target enrichment gene list; csv file with <gene_id> and/or <gene_name>",
+    )
+    parser.add_argument(
+        "--sample",
+        action="append",
+        nargs=2,
+        metavar=("SAMPLE_NAME", "WELLS"),
+        help="Add sample_name and well range; See '--explain' for format",
+    )
+    parser.add_argument(
+        "--samp_list",
+        help="Get samples from file with <name> <wells> per line; See --explain",
+    )
+    parser.add_argument(
+        "--samp_sltab", help="Get samples from SampleLoadingTable excel file"
+    )
+
+    # Mkref mode
+    parser.add_argument(
+        "--genome_name", nargs="*", help="mkref name(s) of genome(s)/species"
+    )
+    parser.add_argument(
+        "--genes", nargs="*", help="mkref GTF file(s) with gene annotations"
+    )
+    parser.add_argument("--fasta", nargs="*", help="mkref fasta file(s) for genome(s)")
+    parser.add_argument(
+        "--gfasta",
+        action="append",
+        nargs=2,
+        metavar=("GENOME_NAME", "FASTA"),
+        help="mkref genome-fasta file; Gene info taken from fasta header line",
+    )
+
+    # Combine mode
+    parser.add_argument(
+        "--sublibraries",
+        nargs="*",
+        help="Paths to output directories of each sublibrary (Combine mode only)",
+    )
+    parser.add_argument(
+        "--sublib_list",
+        help="File listing sublibrary paths, one per line (Combine mode only)",
+    )
+    parser.add_argument(
+        "--sublib_pref", help="Sublibrary list paths prefix (Combine mode only)"
+    )
+    parser.add_argument(
+        "--sublib_suff", help="Sublibrary list paths suffix (Combine mode only)"
+    )
+
+    # DGE transcript cutoff controls
+    parser.add_argument(
+        "--tscp_use", type=int, help="Transcript cutoff to use (Not calculated; given)"
+    )
+    parser.add_argument(
+        "--tscp_min",
+        type=int,
+        help="Transcript cutoff min value (Limit for filtered DGE)",
+    )
+    parser.add_argument(
+        "--tscp_max",
+        type=int,
+        help="Transcript cutoff max value (Limit for filtered DGE)",
+    )
+    parser.add_argument(
+        "--cell_use", type=int, help="Cell count to use (+/- X-fold for filtered DGE)"
+    )
+    parser.add_argument(
+        "--cell_est",
+        type=int,
+        help="Cell count estimate (Min to X-fold for filtered DGE)",
+    )
+    parser.add_argument(
+        "--cell_xf", type=float, help="Cell estimate X-fold factor (For filtered DGE)"
+    )
+    parser.add_argument(
+        "--cell_min", type=int, help="Cell count minimum (Lower limit for filtered DGE)"
+    )
+    parser.add_argument(
+        "--cell_max", type=int, help="Cell count maximum (Upper limit for filtered DGE)"
+    )
+    parser.add_argument(
+        "--cell_list", help="List of cell barcodes to use (No tscp cutoff calculated)"
+    )
+
+    # crispr / focal
+    parser.add_argument(
+        "--focal_barcoding",
+        action="store_true",
+        help="Combine targeted list genes and parent dir cells via focal barcoding",
+    )
+    parser.add_argument(
+        "--crispr",
+        action="store_true",
+        help="Run CRISPR analysis, mapping guide RNA to parent dir cells",
+    )
+    parser.add_argument(
+        "--crsp_guides", help="File with crispr guides and 5' 3' context sequences; csv"
+    )
+    parser.add_argument(
+        "--crsp_read_thresh",
+        type=int,
+        help="Minimum reads to qualify crispr transcripts",
+    )
+    parser.add_argument(
+        "--crsp_tscp_thresh",
+        type=int,
+        help="Minimum transcripts to qualify crispr guide",
+    )
+    parser.add_argument(
+        "--crsp_max_mm",
+        action="store_true",
+        help="Maximum mismatch (Hamming distance) for crispr guide mapping",
+    )
+    parser.add_argument(
+        "--crsp_use_star",
+        action="store_true",
+        help="Use STAR for crispr guide aligment",
+    )
+
+    # TCR
+    parser.add_argument(
+        "--tcr_analysis",
+        action="store_true",
+        help="Run TCR analysis",
+    )
+    parser.add_argument("--tcr_genome", help="TCR genome name")
+    parser.add_argument(
+        "--tcr_check",
+        action="store_true",
+        help="Check TCR database installation status",
+    )
+    parser.add_argument(
+        "--use_imgt_db",
+        action="store_true",
+        help="Use IMGT databse for TCR analysis",
+    )
+
+    # Analysis / report
+    parser.add_argument(
+        "--no_save_anndata", action="store_true", help="Do not save anndata h5ad files"
+    )
+
+    parser.add_argument(
+        "--kit_list",
+        action="store_true",
+        help="List valid kit names and chemistry versions",
+    )
+    parser.add_argument(
+        "--chem_list",
+        action="store_true",
+        help="List valid kit names and chemistry versions",
+    )
+
+    # Barcodes
+    parser.add_argument(
+        "--bc_list", action="store_true", help="List installed barcode sets"
+    )
+    parser.add_argument(
+        "--bc_round_set",
+        action="append",
+        nargs=2,
+        metavar=("ROUND", "NAME"),
+        help="Specify barcode use as <N> <set_name>, where N = 1,2,3",
+    )
+
+    # Run time things
+    parser.add_argument("--rseed", type=int, help="Random number seed")
+    parser.add_argument(
+        "--nthreads",
+        type=float,
+        help="Number of threads to use (default = number of CPUs)",
+    )
+    parser.add_argument(
+        "--no_keep_going",
+        action="store_true",
+        help="Turn off keep_going (Stop on any error)",
+    )
+    parser.add_argument(
+        "--reuse",
+        action="store_true",
+        help="Reuse existing files if found (vs generate fresh)",
+    )
+    parser.add_argument("--keep_temps", action="store_true", help="Keep temp files")
+    parser.add_argument(
+        "--one_step",
+        action="store_true",
+        help="Do one step (mode) of pipeline, then stop",
+    )
+    parser.add_argument("--until_step", help="Run until this step (mode) then stop")
+    parser.add_argument(
+        "--clear_runproc",
+        action="store_true",
+        help="Clear run process def files (Only); Need output_dir",
+    )
+    parser.add_argument(
+        "--start_timeout",
+        type=int,
+        help="Time for statup env check steps; Zero to skip",
+    )
+    parser.add_argument(
+        "--kit_score_skip",
+        action="store_true",
+        help="Ignore kit score failure; WARNING Use with caution!",
+    )
+    parser.add_argument(
+        "--dryrun",
+        action="store_true",
+        help="Dry run; Only setup and report status; Saves run process file",
+    )
+
+    # Feedback
+    parser.add_argument(
+        "-e",
+        "--explain",
+        action="store_true",
+        help="Explain assumptions and usage details",
+    )
+    parser.add_argument("-V", "--version", action="version", version=VERSION)
+
+    args = parser.parse_args()
+
+    if len(sys.argv) < 2:
+        maybe_try("No arguments given")
+        return True
+
+    # Explain and bail
+    if args.explain:
+        pb_help.explain_story(VERSION)
+        return True
+
+    # Only listing kits
+    if args.kit_list or args.chem_list:
+        list_kits()
+        return True
+    # Only listing barcodes
+    if args.bc_list:
+        list_barcode_sets()
+        return True
+    # Only checking TCR database status
+    if args.tcr_check:
+        list_tcr_dbs()
+        return True
+    # Clear env files (only)?
+    if args.clear_runproc:
+        ok = handle_clear_runinfo(args)
+        return ok
+
+    # Create struct to check/init/hold everything
+    spipe = spclass.SplitPipe(VERSION, args)
+    problems = spipe.any_problem()
+    if problems:
+        # Problem messages should already have been printed
+        maybe_try("Problem initializing")
+        return False
+
+    print()
+    spipe.set_up_env()
+    problems = spipe.any_problem()
+    if problems:
+        maybe_try("Problems encountered; Cannot run...")
+        print(problems)
+        return False
+
+    spipe.report_run_params()
+
+    # Save start time
+    start_time = utils.get_time(as_str=False)
+    # Feedback; stdout and log file
+    utils.report_time(msg="Starting " + VERSION)
+    utils.report_time(msg="Starting " + VERSION, ofname=spipe.get_log_fh())
+
+    # Save env settings (even if dryrun)
+    spipe.write_env_files()
+
+    # Dry run only?
+    if spipe.get_par_val("dryrun", as_bool=True):
+        print()
+        report_end_status(spipe)
+        print("\nDry run only; All done\n")
+        return True
+
+    # Main pipeline calls
+    # Loop over run steps; Tuples of (call, name)
+    ok = True
+    run_steps = spipe.get_run_steps(as_tup=True)
+    for call, name in run_steps:
+        utils.report_time(msg=f"Before {name}")
+        # Call as func(spipe)
+        eval(call)(spipe)
+
+        # Make sure there are good samples to continue
+        n_good, _, story = spipe.num_good_samples()
+        if not n_good:
+            spipe.report_run_story(story)
+            spipe.report_run_story("No good samples so stopping")
+            break
+
+        if spipe.any_problem(report=True):
+            ok = False
+            break
+
+    # Save env settings (again; sample status may change)
+    spipe.write_env_files()
+
+    report_end_status(spipe)
+    print("")
+    # Feedback final time, stdout and log
+    utils.report_time(stime=start_time, msg="Total elapsed ")
+    utils.report_time(
+        stime=start_time, msg="Total elapsed " + VERSION, ofname=spipe.get_log_fh()
+    )
+    utils.report_time(msg="All done")
+    utils.report_time(msg="All done " + VERSION, ofname=spipe.get_log_fh())
+
+    return ok
+
+
+def list_kits():
+    """Report valid kits"""
+    print()
+    kits.report_valid_kits()
+    print("\nAll done\n")
+    return True
+
+
+def list_barcode_sets():
+    """Report installed barcode set names"""
+    # Collect names and story from data files
+    names = []
+    bc_fpaths = bcutils.barcode_filepaths()
+    for bc in sorted(bc_fpaths.keys()):
+        df = bcutils.read_bc_data_csv(bc_fpaths[bc]["data_file"])
+        story = bcutils.get_bc_df_story(df)
+        names.append(f"{bc:14s} {story}")
+
+    print(f"\nThere are {len(names)} installed barcode sets:\n")
+    for bc in names:
+        print(f"    {bc}")
+    print("\nAll done\n")
+    return True
+
+
+def list_tcr_dbs():
+    """Report installed TCR database names"""
+    db_list = tcr.get_igblast_db_list()
+    # Look for IMGT
+    imgt_story = "No IMGT"
+    for name in db_list:
+        if name.startswith("imgt_"):
+            imgt_story = "Including IMGT"
+
+    if len(db_list):
+        print(f"\nThere are {len(db_list)} TCR databases installed; {imgt_story}\n")
+        for name in db_list:
+            print(f"    {name}")
+    else:
+        print("\nThere are no TCR databases installed; Cannot use TCR\n")
+    print("\nAll done\n")
+    return True
+
+
+def handle_clear_runinfo(comargs):
+    """Handle call to clear env files"""
+    ok = False
+    if not comargs.output_dir:
+        print("PROBLEM. Need 'output_dir' to clear env files")
+    else:
+        if not spoutdir.is_spipe_top_dir(comargs.output_dir):
+            print(
+                f"PROBLEM. Did not clear files; {comargs.output_dir} is not valid output_dir"
+            )
+        else:
+            n = spoutdir.clear_env_files(comargs.output_dir)
+            print(f"Cleared {n} env def files")
+            ok = True
+
+    print("\nAll done\n")
+    return ok
+
+
+def report_end_status(spipe):
+    """Report ending status"""
+    # Problems are counted even for 'keep_going' so could be many
+    # story = spipe.get_status_story(pref="Finished ")
+
+    n_prob = spipe.problem_count()
+    if spipe.no_problems():
+        status = "OK with some issue(s)..." if n_prob else "successfully"
+        spipe.report_run_story(f"Finished {status} ({n_prob} problems)")
+    else:
+        spipe.report_run_story(f"Finished with some issue(s)... {n_prob} problems")
+        spipe.report_run_story(spipe.any_problem())
+
+
+# ----------------------------------------------------------------------------
+if __name__ == "__main__":
+    ok = main()
+
+    exit_code = 0 if ok else 1
+    sys.exit(exit_code)
