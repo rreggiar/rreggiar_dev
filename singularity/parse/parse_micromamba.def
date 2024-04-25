@@ -1,0 +1,38 @@
+Bootstrap: docker
+From: mambaorg/micromamba
+
+%environment
+
+  export LC_ALL=C
+  export NUMBA_CACHE_DIR=/etc/numba_cache
+  USER=${USER:-'rreggiar'}
+  mamba init
+  mamba activate spipe
+
+%files
+
+  env.yaml /etc/env.yaml
+  ParseBiosciences-Pipeline.1.2.1/ /etc/parsePipeline
+
+%test
+
+  split-pipe
+
+%post
+
+  apt update
+  apt install wget -y
+  apt install curl -y
+  apt install default-jre -y
+  
+  # Create new environment with Python 3.10
+  conda create -n spipe conda-forge::python==3.10
+
+  # Activate your new environment
+  conda activate spipe
+
+  cd /etc/parsePipeline/
+
+  bash ./install_dependencies_conda.sh -i -y
+
+  pip install --no-cache-dir ./
