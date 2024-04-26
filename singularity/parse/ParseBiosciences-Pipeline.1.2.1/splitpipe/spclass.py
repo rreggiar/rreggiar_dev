@@ -3100,7 +3100,6 @@ class SplitPipe:
         # Set up functions to call; Order may matter
         call_lis = [
             "_set_up_dirs",
-            "_set_up_run_env",
             "_set_up_libs",
             "_set_up_execs",
             "_set_up_kit",
