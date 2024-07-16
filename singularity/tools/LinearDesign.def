@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: debian:bullseye-slim
+
+%environment
+
+  export LC_ALL=C
+  USER=${USER:-'rreggiar'}
+
+%files
+
+  /mnt/storage/rreggiar/projects/LinearDesign /etc/LinearDesign
+
+%test
+
+  cd /etc/LinearDesign/ && exec echo "ATGCCACCAGGAGAGCGACAGACGATATTATAGATATAGTAGTAG" | ./lineardesign 
+
+%runscript
+
+  echo "Running Linear Design on: $*"
+  cd /etc/LinearDesign/ && exec echo "$*" | ./lineardesign 
+
+%post
+
+  apt update
+  apt install gcc -y
+  apt install g++ -y
+  apt install clang -y
+  apt install make -y
+  apt install python2 -y
+
+  cd /etc/LinearDesign && make
+
+
